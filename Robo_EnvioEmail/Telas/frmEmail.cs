@@ -125,10 +125,13 @@ namespace Robo_EnvioEmail
                     bool bRet = false;
                     string sSQLAtualizar = string.Empty;
 
-                    string sQuery = "Select mov.dt_Coleta as Dt_Coleta, movNF.cd_notaFiscal as NF, mov.nr_Conhecimento as CTe," +
-                            " rem.ds_Pessoa as Remetente, cidrem.ds_Cidade Cidade_Origem, estrem.cd_Estado UF_Origem," +
-                            " fat.ds_Pessoa as Faturado, mov.ds_Cliente as Destinatario, ciddest.ds_Cidade Cidade_Destinatario, " +
-                            " estdest.cd_Estado UF_Destinatario, oco.ds_Ocorrencia as Ultima_Ocorrencia, movNF.vl_NotaFiscal Valor_NF, movNF.qt_Volume as Volume," +
+                    string sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, movNF.cd_notaFiscal as NF," +
+                            " rTrim(Isnull(mov.nr_Minuta, '')) as Minuta, rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
+                            " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
+                            " rTrim(fat.ds_Pessoa) as Faturado, rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, " +
+                            " rTrim(estdest.cd_Estado) UF_Destinatario, rTrim(oco.ds_Ocorrencia) as Ultima_Ocorrencia, " +
+                            " ocoNF.dt_PrazoFechamento as Data, ocoNF.hr_PrazoFechamento as Hora," +
+                            " movNF.vl_NotaFiscal Valor_NF, movNF.qt_Volume as Volume," +
                             " movNF.kg_Mercadoria as Peso, mov.vl_Frete Valor_Frete" +
                             " From tbdMovimento mov" +
                             " Inner join tbdMovimentoNotaFiscal MovNF on MovNF.id_Movimento = mov.id_Movimento" +
@@ -141,7 +144,9 @@ namespace Robo_EnvioEmail
                             " Inner join tbdEstado estrem on cidrem.id_Estado = estrem.id_Estado" +
                             " Inner join tbdCidade ciddest on mov.id_Cidade = ciddest.id_Cidade" +
                             " Inner join tbdEstado estdest on ciddest.id_Estado = estdest.id_Estado" +
-                            " Where id_ClienteFaturamento = {0} And mov.dt_Coleta = '{1}'" +
+                            " Left  join tbdParametrizacaoPrazoOcorrencia param on ocoNF.id_Ocorrencia = param.id_Ocorrencia" +
+                            " Where id_ClienteFaturamento = {0} And mov.dt_ImpressaoConhecimento = '{1}'" +
+                            " And Isnull(param.tp_NaoEnviarRelatorio, '') <> 'S'" +
                             " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
 
 

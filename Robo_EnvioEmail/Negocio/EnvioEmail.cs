@@ -30,14 +30,33 @@ namespace Robo_EnvioEmail
         {
             SmtpClient smtpClient = new SmtpClient();
             MimeMessage message = new MimeMessage();
+            InternetAddressList listaDestino = new InternetAddressList();
+            InternetAddressList listaCC = new InternetAddressList();
 
             try
             {
                 message.From.Add(new MailboxAddress(_email, _email));
-                message.To.Add(new MailboxAddress(_destinatario, _destinatario));
+                var listaEmails = _destinatario.Split(';');
 
+                foreach (string sDestino in listaEmails)
+                {
+                    listaDestino.Add(new MailboxAddress(sDestino.TrimStart().TrimEnd(), sDestino.TrimStart().TrimEnd()));
+                }
+
+                message.To.AddRange(listaDestino);
+
+                //List de emails CC
                 if (_cc != null && _cc != String.Empty)
-                    message.Cc.Add(new MailboxAddress(_cc, _cc));
+                {
+                    var listaEmailsCC = _cc.Split(';');
+
+                    foreach (string sCC in listaEmailsCC)
+                    {
+                        listaCC.Add(new MailboxAddress(sCC.TrimStart().TrimEnd(), sCC.TrimStart().TrimEnd()));
+                    }
+
+                    message.Cc.AddRange(listaCC);
+                }
 
                 message.Subject = _assunto.Trim();
 
