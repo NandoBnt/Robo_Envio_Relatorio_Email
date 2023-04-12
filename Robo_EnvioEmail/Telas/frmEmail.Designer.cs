@@ -42,12 +42,16 @@
             this.btnLimpar = new System.Windows.Forms.Button();
             this.txtStatus = new System.Windows.Forms.RichTextBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.dtpDataCorte = new System.Windows.Forms.DateTimePicker();
+            this.label4 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.dtpDataCorte);
+            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.dtpSegundoEnvio);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.dtpPrimeiroEnvio);
@@ -93,7 +97,7 @@
             // 
             // btnParar
             // 
-            this.btnParar.Location = new System.Drawing.Point(653, 56);
+            this.btnParar.Location = new System.Drawing.Point(769, 57);
             this.btnParar.Name = "btnParar";
             this.btnParar.Size = new System.Drawing.Size(146, 33);
             this.btnParar.TabIndex = 5;
@@ -103,7 +107,7 @@
             // 
             // btnEnviar
             // 
-            this.btnEnviar.Location = new System.Drawing.Point(487, 56);
+            this.btnEnviar.Location = new System.Drawing.Point(617, 57);
             this.btnEnviar.Name = "btnEnviar";
             this.btnEnviar.Size = new System.Drawing.Size(146, 33);
             this.btnEnviar.TabIndex = 4;
@@ -114,7 +118,7 @@
             // lblProximaAtualizacao
             // 
             this.lblProximaAtualizacao.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.lblProximaAtualizacao.Location = new System.Drawing.Point(273, 56);
+            this.lblProximaAtualizacao.Location = new System.Drawing.Point(431, 61);
             this.lblProximaAtualizacao.Name = "lblProximaAtualizacao";
             this.lblProximaAtualizacao.Size = new System.Drawing.Size(180, 26);
             this.lblProximaAtualizacao.TabIndex = 3;
@@ -122,7 +126,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(269, 33);
+            this.label2.Location = new System.Drawing.Point(427, 34);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(152, 20);
             this.label2.TabIndex = 2;
@@ -172,6 +176,24 @@
             this.timer1.Interval = 5000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // dtpDataCorte
+            // 
+            this.dtpDataCorte.CustomFormat = "HH:mm";
+            this.dtpDataCorte.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.dtpDataCorte.Location = new System.Drawing.Point(269, 56);
+            this.dtpDataCorte.Name = "dtpDataCorte";
+            this.dtpDataCorte.Size = new System.Drawing.Size(134, 26);
+            this.dtpDataCorte.TabIndex = 10;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(265, 33);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(109, 20);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Data de Corte";
+            // 
             // frmEmail
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -205,5 +227,7 @@
         private System.Windows.Forms.DateTimePicker dtpSegundoEnvio;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.DateTimePicker dtpPrimeiroEnvio;
+        private System.Windows.Forms.DateTimePicker dtpDataCorte;
+        private System.Windows.Forms.Label label4;
     }
 }

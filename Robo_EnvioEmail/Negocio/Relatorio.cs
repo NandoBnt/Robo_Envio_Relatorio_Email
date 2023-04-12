@@ -25,38 +25,35 @@ namespace Robo_EnvioEmail.Negocio
             xlWorksheet = (Worksheet)xlWorkbook.ActiveSheet;
             xlWorksheet.Name = "Relatorio";
 
-            xlWorksheet.Range["A1", "R1"].Merge(true);
-            xlWorksheet.Range["A1", "R1"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
-            xlWorksheet.Range["A1", "R1"].Font.Bold = true;
-            xlWorksheet.Range["A1", "R1"].HorizontalAlignment = Constants.xlCenter;
+            xlWorksheet.Range["A1", "S1"].Merge(true);
+            xlWorksheet.Range["A1", "S1"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
+            xlWorksheet.Range["A1", "S1"].Font.Bold = true;
+            xlWorksheet.Range["A1", "S1"].HorizontalAlignment = Constants.xlCenter;
 
             xlWorksheet.Cells[1, 1] = "CRONOGRAMA DE INFORMAÇÕES";
 
-            xlWorksheet.Range["A3", "R3"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
-            xlWorksheet.Range["A3", "R3"].Font.Bold = true;
+            xlWorksheet.Range["A3", "S3"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
+            xlWorksheet.Range["A3", "S3"].Font.Bold = true;
 
             foreach (DataColumn col in dtRelatorio.Columns)
             {
                 xlWorksheet.Cells[3, iCol] = col.ColumnName;
-                iCol ++;
+                iCol++;
             }
 
-            foreach(DataRow row in dtRelatorio.Rows)
+            foreach (DataRow row in dtRelatorio.Rows)
             {
-                xlWorksheet.Range["O" + iRow, "R" + iRow].NumberFormat = "###,##0.00";
-             
+                xlWorksheet.Range["P" + iRow, "S" + iRow].NumberFormat = "###,##0.00";
+
                 for (int indiceCol = 0; indiceCol < dtRelatorio.Columns.Count; indiceCol++)
                 {
-                    //if(indiceCol == 0)
-                    //    xlWorksheet.Cells[iRow, indiceCol + 1] = "'" + row[indiceCol].ToString().Trim().Replace("00:00:00", "");
-                    //else
-                        xlWorksheet.Cells[iRow, indiceCol + 1] = row[indiceCol];
+                    xlWorksheet.Cells[iRow, indiceCol + 1] = row[indiceCol];
                 }
-                
+
                 iRow++;
             }
 
-            xlWorksheet.Range["A1", "R" + iRow].EntireColumn.AutoFit();
+            xlWorksheet.Range["A1", "S" + iRow].EntireColumn.AutoFit();
 
             sArquivo = sCaminhoSalvar + "Relatorio_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".xlsx";
 

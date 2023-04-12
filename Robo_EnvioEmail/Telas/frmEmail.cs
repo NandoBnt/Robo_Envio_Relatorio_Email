@@ -130,10 +130,11 @@ namespace Robo_EnvioEmail
                             " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                             " rTrim(fat.ds_Pessoa) as Faturado, rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, " +
                             " rTrim(estdest.cd_Estado) UF_Destinatario, rTrim(oco.ds_Ocorrencia) as Ultima_Ocorrencia, " +
-                            " ocoNF.dt_PrazoFechamento as Data, ocoNF.hr_PrazoFechamento as Hora," +
+                            " ocoNF.dt_PrazoFechamento as Data, ocoNF.hr_PrazoFechamento as Hora, rTrim(ocoNF.ds_Ocorrencia) as Complemento, " +
                             " movNF.vl_NotaFiscal Valor_NF, movNF.qt_Volume as Volume," +
                             " movNF.kg_Mercadoria as Peso, mov.vl_Frete Valor_Frete" +
                             " From tbdMovimento mov" +
+                            " Inner join tbdExtraGrupoTipoMovimentoItem grupoTipo on mov.id_TipoMovimento = grupoTipo.id_TipoMovimento And grupoTipo.id_GrupoTipoMovimento = 2" +
                             " Inner join tbdMovimentoNotaFiscal MovNF on MovNF.id_Movimento = mov.id_Movimento" +
                             " Inner join v_DadosMovimento v on MovNF.id_Movimento = v.id_Movimento And MovNF.cd_NotaFiscal = v.cd_NotaFiscal" +
                             " Inner join tbdOcorrenciaNota ocoNF on v.id_OcorrenciaNota = ocoNF.id_OcorrenciaNota" +
@@ -145,8 +146,15 @@ namespace Robo_EnvioEmail
                             " Inner join tbdCidade ciddest on mov.id_Cidade = ciddest.id_Cidade" +
                             " Inner join tbdEstado estdest on ciddest.id_Estado = estdest.id_Estado" +
                             " Left  join tbdParametrizacaoPrazoOcorrencia param on ocoNF.id_Ocorrencia = param.id_Ocorrencia" +
-                            " Where id_ClienteFaturamento = {0} And mov.dt_ImpressaoConhecimento = '{1}'" +
+                            " Where id_ClienteFaturamento = {0} And ocoNF.dt_PrazoFechamento >= '{1}'" +
                             " And Isnull(param.tp_NaoEnviarRelatorio, '') <> 'S'" +
+                            " And Not Exists(" +
+                            "   Select 1 from tbdOcorrenciaNota x " +
+                            "   Inner join tbdOcorrenciaManifesto y on x.id_Ocorrencia = y.id_OcorrenciaManifesto" +
+                            "   Where x.id_Movimento = MovNF.id_Movimento " +
+                            "       And x.nr_NotaFiscal = MovNF.cd_NotaFiscal " +
+                            "       And y.tp_Finalizar = 'S'" +
+                            "   )" +
                             " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
 
 
@@ -166,7 +174,7 @@ namespace Robo_EnvioEmail
                     {
                         foreach (DataRow dr in dt.Rows)
                         {
-                            dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Cliente"].ToString(), DateTime.Now.ToString("yyyy-MM-dd")));
+                            dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
                             if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
                             {
