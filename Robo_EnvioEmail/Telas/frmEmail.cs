@@ -133,19 +133,19 @@ namespace Robo_EnvioEmail
                             " ocoNF.dt_PrazoFechamento as Data, ocoNF.hr_PrazoFechamento as Hora, rTrim(ocoNF.ds_Ocorrencia) as Complemento, " +
                             " movNF.vl_NotaFiscal Valor_NF, movNF.qt_Volume as Volume," +
                             " movNF.kg_Mercadoria as Peso, mov.vl_Frete Valor_Frete" +
-                            " From tbdMovimento mov" +
-                            " Inner join tbdExtraGrupoTipoMovimentoItem grupoTipo on mov.id_TipoMovimento = grupoTipo.id_TipoMovimento And grupoTipo.id_GrupoTipoMovimento = 2" +
-                            " Inner join tbdMovimentoNotaFiscal MovNF on MovNF.id_Movimento = mov.id_Movimento" +
-                            " Inner join v_DadosMovimento v on MovNF.id_Movimento = v.id_Movimento And MovNF.cd_NotaFiscal = v.cd_NotaFiscal" +
-                            " Inner join tbdOcorrenciaNota ocoNF on v.id_OcorrenciaNota = ocoNF.id_OcorrenciaNota" +
-                            " Inner join tbdOcorrencia oco on ocoNF.id_Ocorrencia = oco.id_Ocorrencia" +
-                            " Inner join tbdPessoa fat on mov.id_ClienteFaturamento = fat.id_Pessoa" +
-                            " Inner join tbdPessoa rem on mov.id_Remetente = rem.id_Pessoa" +
-                            " Inner join tbdCidade cidrem on mov.id_CidadeOrigem = cidrem.id_Cidade" +
-                            " Inner join tbdEstado estrem on cidrem.id_Estado = estrem.id_Estado" +
-                            " Inner join tbdCidade ciddest on mov.id_Cidade = ciddest.id_Cidade" +
-                            " Inner join tbdEstado estdest on ciddest.id_Estado = estdest.id_Estado" +
-                            " Left  join tbdParametrizacaoPrazoOcorrencia param on ocoNF.id_Ocorrencia = param.id_Ocorrencia" +
+                            " From tbdMovimento mov (Nolock)" +
+                            " Inner join tbdExtraGrupoTipoMovimentoItem grupoTipo (Nolock) on mov.id_TipoMovimento = grupoTipo.id_TipoMovimento And grupoTipo.id_GrupoTipoMovimento = 2" +
+                            " Inner join tbdMovimentoNotaFiscal MovNF (Nolock) on MovNF.id_Movimento = mov.id_Movimento" +
+                            " Inner join v_DadosMovimento v (Nolock) on MovNF.id_Movimento = v.id_Movimento And MovNF.cd_NotaFiscal = v.cd_NotaFiscal" +
+                            " Inner join tbdOcorrenciaNota ocoNF (Nolock) on v.id_OcorrenciaNota = ocoNF.id_OcorrenciaNota" +
+                            " Inner join tbdOcorrencia oco (Nolock) on ocoNF.id_Ocorrencia = oco.id_Ocorrencia" +
+                            " Inner join tbdPessoa fat (Nolock) on mov.id_ClienteFaturamento = fat.id_Pessoa" +
+                            " Inner join tbdPessoa rem (Nolock) on mov.id_Remetente = rem.id_Pessoa" +
+                            " Inner join tbdCidade cidrem (Nolock) on mov.id_CidadeOrigem = cidrem.id_Cidade" +
+                            " Inner join tbdEstado estrem (Nolock) on cidrem.id_Estado = estrem.id_Estado" +
+                            " Inner join tbdCidade ciddest (Nolock) on mov.id_Cidade = ciddest.id_Cidade" +
+                            " Inner join tbdEstado estdest (Nolock) on ciddest.id_Estado = estdest.id_Estado" +
+                            " Left  join tbdParametrizacaoPrazoOcorrencia param (Nolock) on ocoNF.id_Ocorrencia = param.id_Ocorrencia" +
                             " Where id_ClienteFaturamento = {0} And ocoNF.dt_PrazoFechamento >= '{1}'" +
                             " And Isnull(param.tp_NaoEnviarRelatorio, '') <> 'S'" +
                             " And Not Exists(" +
@@ -153,15 +153,15 @@ namespace Robo_EnvioEmail
                             "   Inner join tbdOcorrenciaManifesto y on x.id_Ocorrencia = y.id_OcorrenciaManifesto" +
                             "   Where x.id_Movimento = MovNF.id_Movimento " +
                             "       And x.nr_NotaFiscal = MovNF.cd_NotaFiscal " +
-                            "       And y.tp_Finalizar = 'S'" +
+                            "       And y.tp_BaixaAutomatica = 'S'" +
                             "   )" +
                             " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
 
 
                     sSQL.Append("Select").Append(Environment.NewLine);
                     sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
-                    sSQL.Append("From tbdExtraClienteEmail a").Append(Environment.NewLine);
-                    sSQL.Append("Inner join tbdPessoa b on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
+                    sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
+                    sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
 
                     dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -214,7 +214,8 @@ namespace Robo_EnvioEmail
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ocorreu erro durante o processo de envio: " + Environment.NewLine + ex.Message.ToString());
+                txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu erro durante o processo de envio: : " + Environment.NewLine + ex.Message.ToString() + Environment.NewLine;
+                this.Refresh();
             }
         }
 

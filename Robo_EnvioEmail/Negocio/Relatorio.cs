@@ -55,7 +55,7 @@ namespace Robo_EnvioEmail.Negocio
 
             xlWorksheet.Range["A1", "S" + iRow].EntireColumn.AutoFit();
 
-            sArquivo = sCaminhoSalvar + "Relatorio_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".xlsx";
+            sArquivo = sCaminhoSalvar + "Relatorio_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
 
             xlWorkbook.SaveAs(sArquivo, Type.Missing, Type.Missing, Type.Missing,
                 Type.Missing, Type.Missing, XlSaveAsAccessMode.xlNoChange, XlSaveConflictResolution.xlLocalSessionChanges,
