@@ -2,6 +2,7 @@
 using System;
 using System.Configuration;
 using System.Data;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -15,8 +16,11 @@ namespace Robo_EnvioEmail
         bool bUtilizaSSL = false;
         string sEmailRemetente = string.Empty;
         string sSenhaEmail = string.Empty;
+        string sEmailRemetenteEDI = string.Empty;
+        string sSenhaEmailEDI = string.Empty;
         string sUserAuth = string.Empty;
         string sPasswordAuth = string.Empty;
+        string sDiretorioArquivo = string.Empty;
         int iEnvio = 1;
 
         public frmEmail()
@@ -57,12 +61,33 @@ namespace Robo_EnvioEmail
                 MessageBox.Show("Necessário configurar a senha do email no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-                
+
+            if (settings["Email_EDI"] == "")
+            {
+                MessageBox.Show("Necessário configurar o email de envio de EDI no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (settings["Senha_EDI"] == "")
+            {
+                MessageBox.Show("Necessário configurar a senha do email de EDI no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (settings["DiretorioArquivoEDI"] == "")
+            {
+                MessageBox.Show("Necessário configurar o diretório dos arquivos de EDI no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             sHost = ConfigurationManager.AppSettings["Host"].ToString();
             iPorta = Convert.ToInt32(ConfigurationManager.AppSettings["Porta"].ToString());
             bUtilizaSSL = (ConfigurationManager.AppSettings["UtilizaSSL"] == "S" ? true : false);
             sEmailRemetente = ConfigurationManager.AppSettings["Email"].ToString();
             sSenhaEmail = ConfigurationManager.AppSettings["Senha"].ToString();
+            sEmailRemetenteEDI = ConfigurationManager.AppSettings["Email_EDI"].ToString();
+            sSenhaEmailEDI = ConfigurationManager.AppSettings["Senha_EDI"].ToString();
+            sDiretorioArquivo = ConfigurationManager.AppSettings["DiretorioArquivoEDI"].ToString();
 
             if (settings["AuthenticationUser"] != null)
                 sUserAuth = ConfigurationManager.AppSettings["AuthenticationUser"].ToString();
@@ -110,6 +135,9 @@ namespace Robo_EnvioEmail
                 {
                     string sStatusEnvio = string.Empty;
                     EnvioEmail objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetente, sSenhaEmail, sUserAuth, sPasswordAuth);
+
+                    #region Envio de Relatorio Excel
+
                     Relatorio objRelatorio = new Relatorio();
 
                     txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando emails pendentes de envio." + Environment.NewLine;
@@ -122,10 +150,10 @@ namespace Robo_EnvioEmail
                     DataTable dtRelatorio = new DataTable();
                     StringBuilder sSQL = new StringBuilder();
 
-                    bool bRet = false;
                     string sSQLAtualizar = string.Empty;
+                    string sQuery = string.Empty;
 
-                    string sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, movNF.cd_notaFiscal as NF," +
+                    sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, movNF.cd_notaFiscal as NF," +
                             " rTrim(Isnull(mov.nr_Minuta, '')) as Minuta, rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
                             " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                             " rTrim(fat.ds_Pessoa) as Faturado, rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, " +
@@ -208,6 +236,63 @@ namespace Robo_EnvioEmail
                         this.Refresh();
                     }
 
+                    #endregion
+
+                    #region Envio de Arquivos EDI
+
+                    sQuery =
+                        "Select config.ds_Email, config.ds_AssuntoEmail, config.ds_TextoEmail, b.ds_Pessoa, e.ds_Layout" + Environment.NewLine +
+                        "From tbdConfiguracaoFTPCliente config " + Environment.NewLine +
+                        "Inner join tbdConfiguracaoEDICliente a on config.id_Cliente = a.id_Cliente" + Environment.NewLine +
+                        "Inner join tbdPessoa b on a.id_Cliente = b.id_Pessoa" + Environment.NewLine +
+                        "Inner join tbdConfiguracaoEDI d on a.id_EDI = d.id_EDI" + Environment.NewLine +
+                        "Inner join tbdLayoutEDI e on d.id_LayoutEDI = e.id_Layout" + Environment.NewLine +
+                        "Where config.tp_Envio = 'E' and config.tp_Robo = 'E'";
+
+                    dt = objBase.RealizaPesquisaSQL(sQuery);
+
+                    if (dt == null || dt.Rows.Count != 0)
+                    {
+                        objEnvioEmail = null;
+
+                        objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetenteEDI, sSenhaEmailEDI, sUserAuth, sPasswordAuth);
+
+                        foreach (DataRow dr in dt.Rows)
+                        {
+                            var diretorioCliente = sDiretorioArquivo + 
+                                (!sDiretorioArquivo.EndsWith("\\") ? "\\" : "") + dr["ds_Pessoa"].ToString().Trim() + "\\" + dr["ds_Layout"].ToString().Trim();
+
+                            DirectoryInfo d = new DirectoryInfo(diretorioCliente);
+
+                            foreach(FileInfo fi in d.GetFiles("*.txt"))
+                            {
+                                sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(dr["ds_Email"].ToString(), 
+                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), fi.FullName);
+
+                                if (sStatusEnvio.ToUpper() == "OK")
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado o cliente: " + 
+                                        dr["ds_Pessoa"] + Environment.NewLine;
+
+                                    fi.MoveTo(diretorioCliente + "\\Transferidos\\" + fi.Name);
+
+                                    this.Refresh();
+                                }
+                                else
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email para o cliente[ " + 
+                                        dr["ds_Pessoa"] + "]: "  + sStatusEnvio + Environment.NewLine;
+                                    this.Refresh();
+                                }
+                            }
+
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                            this.Refresh();
+                        }
+                    }
+
+                    #endregion
+
                     ProximaAtualizacao();
                     timer1.Enabled = true;
                 }
@@ -216,6 +301,9 @@ namespace Robo_EnvioEmail
             {
                 txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu erro durante o processo de envio: : " + Environment.NewLine + ex.Message.ToString() + Environment.NewLine;
                 this.Refresh();
+
+                ProximaAtualizacao();
+                timer1.Enabled = true;
             }
         }
 
