@@ -37,25 +37,25 @@ namespace Robo_EnvioEmail
                 MessageBox.Show("Necessário configurar o Host no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-                
+
             if (settings["Porta"] == "")
             {
                 MessageBox.Show("Necessário configurar a Porta no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-                
+
             if (settings["UtilizaSSL"] == "")
             {
                 MessageBox.Show("É necessário configurar a opção Utiliza SSL no arquivo de configurção.", "Configuração");
                 return;
             }
-                
+
             if (settings["Email"] == "")
             {
                 MessageBox.Show("Necessário configurar o email de envio no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-                
+
             if (settings["Senha"] == "")
             {
                 MessageBox.Show("Necessário configurar a senha do email no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -115,7 +115,7 @@ namespace Robo_EnvioEmail
             {
                 dtProximaAtualizacao = dtPrimeiroEnvio;
             }
-            else if(dtSegundoEnvio > DateTime.Now)
+            else if (dtSegundoEnvio > DateTime.Now)
             {
                 dtProximaAtualizacao = dtSegundoEnvio;
             }
@@ -123,7 +123,7 @@ namespace Robo_EnvioEmail
             {
                 dtProximaAtualizacao = dtPrimeiroEnvio.AddDays(1);
             }
-            
+
             lblProximaAtualizacao.Text = dtProximaAtualizacao.ToString();
         }
 
@@ -259,33 +259,45 @@ namespace Robo_EnvioEmail
 
                         foreach (DataRow dr in dt.Rows)
                         {
-                            var diretorioCliente = sDiretorioArquivo + 
+                            var diretorioCliente = sDiretorioArquivo +
                                 (!sDiretorioArquivo.EndsWith("\\") ? "\\" : "") + dr["ds_Pessoa"].ToString().Trim() + "\\" + dr["ds_Layout"].ToString().Trim();
 
                             DirectoryInfo d = new DirectoryInfo(diretorioCliente);
 
-                            foreach(FileInfo fi in d.GetFiles("*.txt"))
+                            d.CreateSubdirectory("Transferidos");
+
+                            string sArquivos = string.Empty;
+
+                            foreach (FileInfo fi in d.GetFiles())
                             {
-                                sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(dr["ds_Email"].ToString(), 
-                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), fi.FullName);
+                                sArquivos += fi.FullName + ";";
+                            }
+
+                            if(sArquivos.Length > 0)
+                            {
+                                sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(dr["ds_Email"].ToString(),
+                                                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), sArquivos.Substring(0, sArquivos.Length -1));
 
                                 if (sStatusEnvio.ToUpper() == "OK")
                                 {
-                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado o cliente: " + 
-                                        dr["ds_Pessoa"] + Environment.NewLine;
+                                    foreach (FileInfo fi in d.GetFiles())
+                                    {
+                                        txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado o cliente: " +
+                                        dr["ds_Pessoa"].ToString().Trim() + " - Arquivo: " + fi.Name + Environment.NewLine;
 
-                                    fi.MoveTo(diretorioCliente + "\\Transferidos\\" + fi.Name);
+                                        fi.MoveTo(diretorioCliente + "\\Transferidos\\" + fi.Name);
 
-                                    this.Refresh();
+                                        this.Refresh();
+                                    }
                                 }
                                 else
                                 {
-                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email para o cliente[ " + 
-                                        dr["ds_Pessoa"] + "]: "  + sStatusEnvio + Environment.NewLine;
+                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email para o cliente[ " +
+                                        dr["ds_Pessoa"] + "]: " + sStatusEnvio + Environment.NewLine;
                                     this.Refresh();
                                 }
                             }
-
+                            
                             txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
                             this.Refresh();
                         }
