@@ -18,6 +18,8 @@ namespace Robo_EnvioEmail
         string sSenhaEmail = string.Empty;
         string sEmailRemetenteEDI = string.Empty;
         string sSenhaEmailEDI = string.Empty;
+        string sEmailAgente = string.Empty;
+        string sSenhaEmailAgente = string.Empty;
         string sUserAuth = string.Empty;
         string sPasswordAuth = string.Empty;
         string sDiretorioArquivo = string.Empty;
@@ -80,6 +82,18 @@ namespace Robo_EnvioEmail
                 return;
             }
 
+            if (settings["Email_Agente"] == "")
+            {
+                MessageBox.Show("Necessário configurar o email de envio de agendamentos de Agentes no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (settings["Senha_Agente"] == "")
+            {
+                MessageBox.Show("Necessário configurar a senha do email de agendamentos de Agentes no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             sHost = ConfigurationManager.AppSettings["Host"].ToString();
             iPorta = Convert.ToInt32(ConfigurationManager.AppSettings["Porta"].ToString());
             bUtilizaSSL = (ConfigurationManager.AppSettings["UtilizaSSL"] == "S" ? true : false);
@@ -87,6 +101,8 @@ namespace Robo_EnvioEmail
             sSenhaEmail = ConfigurationManager.AppSettings["Senha"].ToString();
             sEmailRemetenteEDI = ConfigurationManager.AppSettings["Email_EDI"].ToString();
             sSenhaEmailEDI = ConfigurationManager.AppSettings["Senha_EDI"].ToString();
+            sEmailAgente = ConfigurationManager.AppSettings["Email_Agente"].ToString();
+            sSenhaEmailAgente = ConfigurationManager.AppSettings["Senha_Agente"].ToString();
             sDiretorioArquivo = ConfigurationManager.AppSettings["DiretorioArquivoEDI"].ToString();
 
             if (settings["AuthenticationUser"] != null)
@@ -134,17 +150,8 @@ namespace Robo_EnvioEmail
                 if (DateTime.Now >= dtProximaAtualizacao)
                 {
                     string sStatusEnvio = string.Empty;
-                    EnvioEmail objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetente, sSenhaEmail, sUserAuth, sPasswordAuth);
-
-                    #region Envio de Relatorio Excel
-
-                    Relatorio objRelatorio = new Relatorio();
-
-                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando emails pendentes de envio." + Environment.NewLine;
-                    this.Refresh();
 
                     timer1.Enabled = false;
-
                     var objBase = new DataAcess.ADOBase();
                     DataTable dt = new DataTable();
                     DataTable dtRelatorio = new DataTable();
@@ -152,6 +159,15 @@ namespace Robo_EnvioEmail
 
                     string sSQLAtualizar = string.Empty;
                     string sQuery = string.Empty;
+
+                    #region Envio de Relatorio Excel
+
+                    EnvioEmail objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetente, sSenhaEmail, sUserAuth, sPasswordAuth);
+
+                    Relatorio objRelatorio = new Relatorio();
+
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando emails pendentes de envio." + Environment.NewLine;
+                    this.Refresh();
 
                     sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, movNF.cd_notaFiscal as NF," +
                             " rTrim(Isnull(mov.nr_Minuta, '')) as Minuta, rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
@@ -273,10 +289,10 @@ namespace Robo_EnvioEmail
                                 sArquivos += fi.FullName + ";";
                             }
 
-                            if(sArquivos.Length > 0)
+                            if (sArquivos.Length > 0)
                             {
                                 sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(dr["ds_Email"].ToString(),
-                                                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), sArquivos.Substring(0, sArquivos.Length -1));
+                                                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), sArquivos.Substring(0, sArquivos.Length - 1));
 
                                 if (sStatusEnvio.ToUpper() == "OK")
                                 {
@@ -297,11 +313,118 @@ namespace Robo_EnvioEmail
                                     this.Refresh();
                                 }
                             }
-                            
+
                             txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
                             this.Refresh();
                         }
                     }
+
+                    #endregion
+
+                    #region Envio Email Agentes
+
+                    objEnvioEmail = null;
+
+                    objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailAgente, sSenhaEmailAgente, sUserAuth, sPasswordAuth);
+
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando emails pendentes de envio." + Environment.NewLine;
+                    this.Refresh();
+
+                    sQuery = "Select ocoNF.id_OcorrenciaNota, movDesp.dt_agendamento as DtAgendamento, movDesp.hr_Agendamento as Hora, " +
+                    "rtrim(mov.nr_Conhecimento) as CTe, " +
+                    "rtrim(movNF.cd_NotaFiscal) as NF, " +
+                    "rtrim(mov.nr_AWB) as AWB, " +
+                    "movNF.cd_Serie as Serie, " +
+                    "rtrim(rem.ds_Pessoa) as Remetente, " +
+                    "rtrim(mov.ds_Cliente) as Destinatario, " +
+                    "rtrim(cidDest.ds_Cidade) as CidadeDest, " +
+                    "rtrim(estDest.cd_Estado) as UFDest, " +
+                    "movNF.vl_NotaFiscal as ValorNF, " +
+                    "movNF.qt_Volume as Volume, " +
+                    "movNF.kg_Mercadoria as Peso, " +
+                    "mov.id_Agente, " +
+                    "rtrim(ag.ds_Pessoa) as Agente, " +
+                    "rtrim(ag.cd_Email) as Email " +
+                    "from tbdOcorrenciaNota ocoNF " +
+                    "Inner join tbdMovimento mov on ocoNF.id_Movimento = mov.id_Movimento " +
+                    "inner join tbdMovimentoNotaFiscal movNF on ocoNF.id_Movimento = movNF.id_Movimento And movNF.cd_NotaFiscal = ocoNF.nr_NotaFiscal " +
+                    "inner join tbdMovimentoDespesaManifesto movDesp on mov.id_Movimento = movDesp.id_Movimento " +
+                    "Inner join tbdPessoa ag on mov.id_Agente = ag.id_Pessoa " +
+                    "Inner join tbdPessoa rem on mov.id_Remetente = rem.id_Pessoa " +
+                    "inner join tbdCidade cidDest on mov.id_Cidade = cidDest.id_Cidade " +
+                    "inner join tbdEstado estDest on cidDest.id_Estado = estDest.id_Estado " +
+                    "where ocoNF.id_Ocorrencia = 30 " +
+                    "and Isnull(tp_EnviadoEmailAgente, '') <> 'S' " +
+                    "and mov.dt_Recepcao is null " +
+                    "and Not exists(select top 1 x.id_OcorrenciaNota " +
+                    "               from tbdOcorrenciaNota x " +
+                    "               where x.id_Movimento = ocoNF.id_Movimento " +
+                    "                    and x.id_OcorrenciaNota > ocoNF.id_OcorrenciaNota) " +
+                    "and Isnull(ag.cd_Email, '') <> '' " +
+                    "and DATEDIFF(day, CONVERT(DATETIME, CONVERT(CHAR(10), CURRENT_TIMESTAMP, 103), 103), " +
+                    "	                Convert(datetime, movDesp.dt_agendamento)) = 3 " +
+                    " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
+
+
+                    dtRelatorio = objBase.RealizaPesquisaSQL(sQuery);
+
+                    if (dtRelatorio != null && dtRelatorio.Rows.Count > 0)
+                    {
+                        string sCorpoEmail = string.Empty;
+
+                        foreach (DataRow row in dtRelatorio.Rows)
+                        {
+                            sCorpoEmail = "Segue abaixo dados da carga:" + Environment.NewLine + Environment.NewLine +
+
+                                "Entrega agendada para: " + Convert.ToDateTime(row["DtAgendamento"]).ToString("d") +
+                                " às " + row["Hora"].ToString() + Environment.NewLine + Environment.NewLine +
+
+                                "Cte....................: " + row["CTe"].ToString() + Environment.NewLine +
+                                "Nf......................: " + row["NF"].ToString() + Environment.NewLine +
+                                "Série..................: " + row["Serie"].ToString() + Environment.NewLine +
+                                "Awb....................: " + row["AWB"].ToString() + Environment.NewLine +
+                                "Remetente.........: " + row["Remetente"].ToString() + Environment.NewLine +
+                                "Destinatário........: " + row["Destinatario"].ToString() + Environment.NewLine +
+                                "Cidade................: " + row["CidadeDest"].ToString() + Environment.NewLine +
+                                "Uf........................: " + row["UFDest"].ToString() + Environment.NewLine +
+                                "Valor NF..............: " + row["ValorNF"].ToString() + Environment.NewLine +
+                                "Volume................: " + row["Volume"].ToString() + Environment.NewLine +
+                                "Peso....................: " + row["Peso"].ToString() + Environment.NewLine;
+
+
+                            sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                                                                                row["Email"].ToString(),
+                                                                                "",
+                                                                                "Entrega Programada Agente".ToString(),
+                                                                                sCorpoEmail,
+                                                                                ""
+                                                                                );
+
+                            if (sStatusEnvio.ToUpper() == "OK")
+                            {
+                                if(!objBase.ExecutaComando("Update tbdOcorrenciaNota set tp_EnviadoEmailAgente = 'S' Where id_OcorrenciaNota = " 
+                                    + row["id_OcorrenciaNota"].ToString()))
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Falha na atualização do registro." + Environment.NewLine;
+                                }
+                                else
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + row["Agente"] + Environment.NewLine;
+                                }
+
+                                this.Refresh();
+                            }
+                            else
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Falha no envio do email para agente [" + row["Agente"] + "] : " +
+                                    sStatusEnvio + Environment.NewLine;
+                                this.Refresh();
+                            }
+                        }
+                    }
+
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                    this.Refresh();
 
                     #endregion
 
