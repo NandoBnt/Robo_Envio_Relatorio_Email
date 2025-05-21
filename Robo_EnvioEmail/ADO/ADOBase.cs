@@ -23,7 +23,7 @@ namespace Robo_EnvioEmail.DataAcess
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
 

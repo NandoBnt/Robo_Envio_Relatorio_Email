@@ -56,12 +56,11 @@ C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\bin\Relea
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\bin\Release\System.Runtime.CompilerServices.Unsafe.xml
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\bin\Release\System.Threading.Tasks.Extensions.xml
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.csproj.AssemblyReference.cache
-C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.csproj.SuggestedBindingRedirects.cache
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.csproj.ResolveComReference.cache
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.frmEmail.resources
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.Properties.Resources.resources
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.csproj.GenerateResource.cache
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.csproj.CoreCompileInputs.cache
-C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.csproj.CopyComplete
+C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_Env.4A14874E.Up2Date
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.exe
 C:\Users\ferna\source\repos\Robo_Envio_Relatorio_Email\Robo_EnvioEmail\obj\Release\Robo_EnvioEmail.pdb

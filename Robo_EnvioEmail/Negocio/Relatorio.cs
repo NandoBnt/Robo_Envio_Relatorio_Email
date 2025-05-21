@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Office.Interop.Excel;
 using System.Data;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace Robo_EnvioEmail.Negocio
 {
     public class Relatorio
     {
 
-        public string GerarExcel(System.Data.DataTable dtRelatorio, string sCaminhoSalvar)
+        public string GerarExcel(System.Data.DataTable dtRelatorio, string sTituloRelatorio, string sPrimeiraColunaValor, string sCaminhoSalvar, string sNomeArquivo)
         {
             Application xlApp = new Application();
             _Workbook xlWorkbook;
@@ -25,15 +26,15 @@ namespace Robo_EnvioEmail.Negocio
             xlWorksheet = (Worksheet)xlWorkbook.ActiveSheet;
             xlWorksheet.Name = "Relatorio";
 
-            xlWorksheet.Range["A1", "S1"].Merge(true);
-            xlWorksheet.Range["A1", "S1"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
-            xlWorksheet.Range["A1", "S1"].Font.Bold = true;
-            xlWorksheet.Range["A1", "S1"].HorizontalAlignment = Constants.xlCenter;
+            xlWorksheet.Range["A1", NumeroParaLetra(dtRelatorio.Columns.Count) + "1"].Merge(true);
+            xlWorksheet.Range["A1", NumeroParaLetra(dtRelatorio.Columns.Count) + "1"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
+            xlWorksheet.Range["A1", NumeroParaLetra(dtRelatorio.Columns.Count) + "1"].Font.Bold = true;
+            xlWorksheet.Range["A1", NumeroParaLetra(dtRelatorio.Columns.Count) + "1"].HorizontalAlignment = Constants.xlCenter;
 
-            xlWorksheet.Cells[1, 1] = "CRONOGRAMA DE INFORMAÇÕES";
+            xlWorksheet.Cells[1, 1] = sTituloRelatorio;
 
-            xlWorksheet.Range["A3", "S3"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
-            xlWorksheet.Range["A3", "S3"].Font.Bold = true;
+            xlWorksheet.Range["A3", NumeroParaLetra(dtRelatorio.Columns.Count) + "3"].Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Green);
+            xlWorksheet.Range["A3", NumeroParaLetra(dtRelatorio.Columns.Count) + "3"].Font.Bold = true;
 
             foreach (DataColumn col in dtRelatorio.Columns)
             {
@@ -43,7 +44,7 @@ namespace Robo_EnvioEmail.Negocio
 
             foreach (DataRow row in dtRelatorio.Rows)
             {
-                xlWorksheet.Range["P" + iRow, "S" + iRow].NumberFormat = "###,##0.00";
+                xlWorksheet.Range[sPrimeiraColunaValor + iRow, NumeroParaLetra(dtRelatorio.Columns.Count) + iRow].NumberFormat = "###,##0.00";
 
                 for (int indiceCol = 0; indiceCol < dtRelatorio.Columns.Count; indiceCol++)
                 {
@@ -53,9 +54,9 @@ namespace Robo_EnvioEmail.Negocio
                 iRow++;
             }
 
-            xlWorksheet.Range["A1", "S" + iRow].EntireColumn.AutoFit();
+            xlWorksheet.Range["A1", NumeroParaLetra(dtRelatorio.Columns.Count) + iRow].EntireColumn.AutoFit();
 
-            sArquivo = sCaminhoSalvar + "Relatorio_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
+            sArquivo = sCaminhoSalvar + sNomeArquivo + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
 
             xlWorkbook.SaveAs(sArquivo, Type.Missing, Type.Missing, Type.Missing,
                 Type.Missing, Type.Missing, XlSaveAsAccessMode.xlNoChange, XlSaveConflictResolution.xlLocalSessionChanges,
@@ -66,6 +67,17 @@ namespace Robo_EnvioEmail.Negocio
 
             return sArquivo;
         }
+
+        public static string NumeroParaLetra(int numero)
+        {
+            if (numero < 1 || numero > 26)
+                throw new ArgumentOutOfRangeException(nameof(numero), "O número deve estar entre 1 e 26.");
+
+            // ASCII da letra 'A' é 65
+            char letra = (char)('A' + numero - 1);
+            return letra.ToString();
+        }
+
 
     }
 }

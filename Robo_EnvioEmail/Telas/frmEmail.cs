@@ -1,4 +1,5 @@
-﻿using Robo_EnvioEmail.Negocio;
+﻿using Robo_EnvioEmail.DataAcess;
+using Robo_EnvioEmail.Negocio;
 using System;
 using System.Configuration;
 using System.Data;
@@ -11,6 +12,7 @@ namespace Robo_EnvioEmail
     public partial class frmEmail : Form
     {
         DateTime dtProximaAtualizacao;
+        DateTime dtProximaAtualizacaoArquivos;
         string sHost = string.Empty;
         int iPorta = 0;
         bool bUtilizaSSL = false;
@@ -18,10 +20,11 @@ namespace Robo_EnvioEmail
         string sSenhaEmail = string.Empty;
         string sEmailRemetenteEDI = string.Empty;
         string sSenhaEmailEDI = string.Empty;
+        string sEmailRemetentePreAlert = string.Empty;
+        string sSenhaEmailPreAlert = string.Empty;
         string sUserAuth = string.Empty;
         string sPasswordAuth = string.Empty;
         string sDiretorioArquivo = string.Empty;
-        int iEnvio = 1;
 
         public frmEmail()
         {
@@ -74,6 +77,18 @@ namespace Robo_EnvioEmail
                 return;
             }
 
+            if (settings["Email_Agente"] == "")
+            {
+                MessageBox.Show("Necessário configurar o email de envio de PréAlert no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (settings["Senha_Agente"] == "")
+            {
+                MessageBox.Show("Necessário configurar a senha do email de PréAlert no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             if (settings["DiretorioArquivoEDI"] == "")
             {
                 MessageBox.Show("Necessário configurar o diretório dos arquivos de EDI no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -87,6 +102,8 @@ namespace Robo_EnvioEmail
             sSenhaEmail = ConfigurationManager.AppSettings["Senha"].ToString();
             sEmailRemetenteEDI = ConfigurationManager.AppSettings["Email_EDI"].ToString();
             sSenhaEmailEDI = ConfigurationManager.AppSettings["Senha_EDI"].ToString();
+            sEmailRemetentePreAlert = ConfigurationManager.AppSettings["Email_Agente"].ToString();
+            sSenhaEmailPreAlert = ConfigurationManager.AppSettings["Senha_Agente"].ToString();
             sDiretorioArquivo = ConfigurationManager.AppSettings["DiretorioArquivoEDI"].ToString();
 
             if (settings["AuthenticationUser"] != null)
@@ -102,29 +119,39 @@ namespace Robo_EnvioEmail
             txtStatus.Text += DateTime.Now.ToString("f") + " - Aplicação iniciada." + Environment.NewLine;
             this.Refresh();
 
-            ProximaAtualizacao();
+            ProximaAtualizacao(1);
+            ProximaAtualizacao(2);
             timer1.Enabled = true;
         }
 
-        private void ProximaAtualizacao()
+        private void ProximaAtualizacao(int iAtualizacao)
         {
-            DateTime dtPrimeiroEnvio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, dtpPrimeiroEnvio.Value.Hour, dtpPrimeiroEnvio.Value.Minute, 0);
-            DateTime dtSegundoEnvio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, dtpSegundoEnvio.Value.Hour, dtpSegundoEnvio.Value.Minute, 0);
+            if (iAtualizacao == 1)
+            {
+                DateTime dtPrimeiroEnvio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, dtpPrimeiroEnvio.Value.Hour, dtpPrimeiroEnvio.Value.Minute, 0);
+                DateTime dtSegundoEnvio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, dtpSegundoEnvio.Value.Hour, dtpSegundoEnvio.Value.Minute, 0);
 
-            if (dtPrimeiroEnvio > DateTime.Now)
-            {
-                dtProximaAtualizacao = dtPrimeiroEnvio;
-            }
-            else if (dtSegundoEnvio > DateTime.Now)
-            {
-                dtProximaAtualizacao = dtSegundoEnvio;
+                if (dtPrimeiroEnvio > DateTime.Now)
+                {
+                    dtProximaAtualizacao = dtPrimeiroEnvio;
+                }
+                else if (dtSegundoEnvio > DateTime.Now)
+                {
+                    dtProximaAtualizacao = dtSegundoEnvio;
+                }
+                else
+                {
+                    dtProximaAtualizacao = dtPrimeiroEnvio.AddDays(1);
+                }
+
+                lblProximaAtualizacao.Text = dtProximaAtualizacao.ToString();
             }
             else
             {
-                dtProximaAtualizacao = dtPrimeiroEnvio.AddDays(1);
-            }
+                dtProximaAtualizacaoArquivos = DateTime.Now.AddMinutes(Convert.ToInt16(txtIntervalo.Text));
 
-            lblProximaAtualizacao.Text = dtProximaAtualizacao.ToString();
+                lblProximaAtualizacaoArquivos.Text = dtProximaAtualizacaoArquivos.ToString();
+            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -135,24 +162,22 @@ namespace Robo_EnvioEmail
                 {
                     string sStatusEnvio = string.Empty;
                     EnvioEmail objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetente, sSenhaEmail, sUserAuth, sPasswordAuth);
+                    DataTable dt = new DataTable();
+                    ADOBase objBase = new ADOBase();
+                    StringBuilder sSQL = new StringBuilder();
+                    Relatorio objRelatorio = new Relatorio();
+                    DataTable dtRelatorio = new DataTable();
+                    string sSQLAtualizar = string.Empty;
+                    string sQuery = string.Empty;
+
+                    timer1.Enabled = false;
 
                     #region Envio de Relatorio Excel
-
-                    Relatorio objRelatorio = new Relatorio();
 
                     txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando emails pendentes de envio." + Environment.NewLine;
                     this.Refresh();
 
-                    timer1.Enabled = false;
-
-                    var objBase = new DataAcess.ADOBase();
-                    DataTable dt = new DataTable();
-                    DataTable dtRelatorio = new DataTable();
-                    StringBuilder sSQL = new StringBuilder();
-
-                    string sSQLAtualizar = string.Empty;
-                    string sQuery = string.Empty;
-
+                    
                     sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, movNF.cd_notaFiscal as NF," +
                             " rTrim(Isnull(mov.nr_Minuta, '')) as Minuta, rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
                             " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
@@ -210,7 +235,7 @@ namespace Robo_EnvioEmail
                                 continue;
                             }
 
-                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\");
+                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "P", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio");
 
                             sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                                 dr["ds_EmailDestino"].ToString(),
@@ -238,6 +263,26 @@ namespace Robo_EnvioEmail
 
                     #endregion
 
+                    ProximaAtualizacao(1);
+
+                }
+
+                if (DateTime.Now >= dtProximaAtualizacaoArquivos)
+                {
+                    string sStatusEnvio = string.Empty;
+                    EnvioEmail objEnvioEmail;
+                    DataTable dt = new DataTable();
+                    ADOBase objBase = new ADOBase();
+                    StringBuilder sSQL = new StringBuilder();
+                    Relatorio objRelatorio = new Relatorio();
+                    DataTable dtRelatorio = new DataTable();
+                    string sSQLAtualizar = string.Empty;
+                    string sQuery = string.Empty;
+                    string sTemplateUpdate = string.Empty;
+                    bool bRet = false;
+
+                    timer1.Enabled = false;
+
                     #region Envio de Arquivos EDI
 
                     sQuery =
@@ -251,7 +296,7 @@ namespace Robo_EnvioEmail
 
                     dt = objBase.RealizaPesquisaSQL(sQuery);
 
-                    if (dt == null || dt.Rows.Count != 0)
+                    if (dt != null && dt.Rows.Count != 0)
                     {
                         objEnvioEmail = null;
 
@@ -273,10 +318,10 @@ namespace Robo_EnvioEmail
                                 sArquivos += fi.FullName + ";";
                             }
 
-                            if(sArquivos.Length > 0)
+                            if (sArquivos.Length > 0)
                             {
                                 sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(dr["ds_Email"].ToString(),
-                                                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), sArquivos.Substring(0, sArquivos.Length -1));
+                                                                    "", dr["ds_AssuntoEmail"].ToString(), dr["ds_TextoEmail"].ToString(), sArquivos.Substring(0, sArquivos.Length - 1));
 
                                 if (sStatusEnvio.ToUpper() == "OK")
                                 {
@@ -285,8 +330,15 @@ namespace Robo_EnvioEmail
                                         txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado o cliente: " +
                                         dr["ds_Pessoa"].ToString().Trim() + " - Arquivo: " + fi.Name + Environment.NewLine;
 
-                                        fi.MoveTo(diretorioCliente + "\\Transferidos\\" + fi.Name);
-
+                                        if(File.Exists(diretorioCliente + "\\Transferidos\\" + fi.Name))
+                                        {
+                                            fi.Delete();
+                                        }
+                                        else
+                                        {
+                                            fi.MoveTo(diretorioCliente + "\\Transferidos\\" + fi.Name);
+                                        }
+                                            
                                         this.Refresh();
                                     }
                                 }
@@ -297,7 +349,7 @@ namespace Robo_EnvioEmail
                                     this.Refresh();
                                 }
                             }
-                            
+
                             txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
                             this.Refresh();
                         }
@@ -305,16 +357,120 @@ namespace Robo_EnvioEmail
 
                     #endregion
 
-                    ProximaAtualizacao();
+                    #region Envio de PreAlert
+
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando Pré-Alert pendentes de envio." + Environment.NewLine;
+                    this.Refresh();
+
+                    sQuery = "Select rTrim(Cia.ds_Pessoa) as Cia_Aerea, fechto.nr_AWB as AWB, Ag.ds_Pessoa as Agente_Entrega," +
+                            " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
+                            " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
+                            " rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, rTrim(estdest.cd_Estado) UF_Destinatario, " +
+                            " mov.vl_NotaFiscal Valor_NF, mov.qt_Volume as Volume, mov.kg_Mercadoria as Peso" +
+                            " From tbdFechamentoCiaAerea fechto (Nolock)" +
+                            " Inner join tbdFechamentoCiaAereaMovimento fechtoMov (Nolock) on fechto.id_FechamentoCiaAerea = fechtoMov.id_FechamentoCiaAerea" +
+                            " Inner join tbdMovimento Mov (Nolock) on fechtoMov.id_Movimento = Mov.id_Movimento" +
+                            " Inner join tbdPessoa Cia (Nolock) on fechto.id_CiaAerea = Cia.id_Pessoa" +
+                            " Inner join tbdPessoa Rem (Nolock) on Mov.id_Remetente = Rem.id_Pessoa" +
+                            " Inner join tbdCidade CidRem (Nolock) on Rem.id_Cidade = CidRem.id_Cidade" +
+                            " Inner join tbdEstado EstRem (Nolock) on CidRem.id_Estado = EstRem.id_Estado" +
+                            " Inner join tbdCidade CidDest (Nolock) on Mov.id_CidadeDestinatario = CidDest.id_Cidade" +
+                            " Inner join tbdEstado EstDest (Nolock) on CidDest.id_Estado = EstDest.id_Estado" +
+                            " Inner join tbdPessoa Ag (Nolock) on fechto.id_Destinatario = Ag.id_Pessoa" +
+                            " Where fechto.id_Destinatario = {0} " +
+                            "   And fechto.tp_GeradoPreAlert = 'S' And Isnull(fechto.tp_EnviadoPreAlert, '') <> 'S'" +
+                            " Order by fechto.nr_AWB, Rem.ds_Pessoa, Mov.nr_Conhecimento";
+
+
+                    sSQL.Append("Select").Append(Environment.NewLine);
+                    sSQL.Append("Distinct fechto.id_Destinatario as id_Agente, fechto.nr_PreAlertEmail, Ag.ds_Pessoa as ds_Agente, Ag.cd_Email").Append(Environment.NewLine);
+                    sSQL.Append("From tbdFechamentoCiaAerea fechto (Nolock) ").Append(Environment.NewLine);
+                    sSQL.Append("Inner join tbdPessoa Ag (Nolock) on fechto.id_Destinatario = Ag.id_Pessoa").Append(Environment.NewLine);
+                    sSQL.Append("Where fechto.tp_GeradoPreAlert = 'S' And Isnull(fechto.tp_EnviadoPreAlert, '') <> 'S'");
+
+                    sTemplateUpdate = "Update tbdFechamentoCiaAerea set tp_EnviadoPreAlert = 'S'" + Environment.NewLine +
+                        "Where id_Destinatario = {0}" + Environment.NewLine +
+                        "   And tp_GeradoPreAlert = 'S'" + Environment.NewLine +
+                        "   And nr_PreAlertEmail = {1}";
+
+                    dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
+
+                    if (dt == null || dt.Rows.Count == 0)
+                    {
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - Nenhum Pré-Alert pendente de envio." + Environment.NewLine;
+                        this.Refresh();
+                    }
+                    else
+                    {
+                        objEnvioEmail = null;
+
+                        objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetentePreAlert, sSenhaEmailPreAlert, sUserAuth, sPasswordAuth);
+
+                        foreach (DataRow dr in dt.Rows)
+                        {
+                            dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Agente"].ToString()));
+
+                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "K", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+
+                            sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                                dr["cd_Email"].ToString(),
+                                "",
+                                "Pré-Alert",
+                                "Segue anexo relação de cargas a entregar.",
+                                sArquivoGerado
+                                );
+
+                            if (sStatusEnvio.ToUpper() == "OK")
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + dr["cd_Email"] + Environment.NewLine;
+                                this.Refresh();
+
+                                bRet = objBase.ExecutaComando(string.Format(sTemplateUpdate, dr["id_Agente"], dr["nr_PreAlertEmail"]));
+
+                                if (bRet)
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("f") +
+                                    " - PréAlert: " + dr["nr_PreAlertEmail"].ToString().Trim() +
+                                    " - Status atualizado para enviado.";
+                                    this.Refresh();
+
+                                }
+                                else
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("g") + " - Ocorreu erro atualizar o status do PréAlert." + Environment.NewLine;
+                                    this.Refresh();
+                                }
+                            }
+                            else
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email: " + sStatusEnvio + Environment.NewLine;
+                                this.Refresh();
+                            }
+                        }
+
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                        this.Refresh();
+                    }
+
+                    #endregion Envio de PreAlert
+
+                    ProximaAtualizacao(2);
+                }
+
+                if (timer1.Enabled == false)
+                {
                     timer1.Enabled = true;
                 }
             }
             catch (Exception ex)
             {
-                txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu erro durante o processo de envio: : " + Environment.NewLine + ex.Message.ToString() + Environment.NewLine;
+                txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu erro durante o processo de envio: " + Environment.NewLine
+                    + ex.Message.ToString() + Environment.NewLine
+                    + "Trace: " + ex.StackTrace;
                 this.Refresh();
 
-                ProximaAtualizacao();
+                ProximaAtualizacao(1);
+                ProximaAtualizacao(2);
                 timer1.Enabled = true;
             }
         }
