@@ -29,14 +29,21 @@ namespace Robo_EnvioEmail.DataAcess
 
         public bool ExecutaComando(string strSQL)
         {
-            using (var objConexao = new SqlConnection(RetornaConexao()))
-            using (var objComando = new SqlCommand(strSQL, objConexao))
+            try
             {
-                objConexao.Open();
-                objComando.CommandTimeout = 99999;
-                objComando.CommandType = CommandType.Text;
-                
-                return objComando.ExecuteNonQuery() > 0;
+                using (var objConexao = new SqlConnection(RetornaConexao()))
+                using (var objComando = new SqlCommand(strSQL, objConexao))
+                {
+                    objConexao.Open();
+                    objComando.CommandTimeout = 99999;
+                    objComando.CommandType = CommandType.Text;
+
+                    return objComando.ExecuteNonQuery() > 0;
+                }
+            }
+            catch(Exception ex)
+            {
+                return false;
             }
         }
 
