@@ -1,7 +1,8 @@
-﻿using System;
-using System.IO;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
+using System;
+using System.IO;
 
 namespace Robo_EnvioEmail
 {
@@ -40,7 +41,14 @@ namespace Robo_EnvioEmail
 
                 foreach (string sDestino in listaEmails)
                 {
-                    listaDestino.Add(new MailboxAddress(sDestino.TrimStart().TrimEnd(), sDestino.TrimStart().TrimEnd()));
+                    if (EmailValido(sDestino))
+                    {
+                        listaDestino.Add(new MailboxAddress(sDestino.TrimStart().TrimEnd(), sDestino.TrimStart().TrimEnd()));
+                    }
+                    else 
+                    {
+                        return "Email inválido: " + sDestino;
+                    }
                 }
 
                 message.To.AddRange(listaDestino);
@@ -82,11 +90,19 @@ namespace Robo_EnvioEmail
                 }
 
                 message.Body = builder.ToMessageBody();
-                
-                smtpClient.Connect(_host, _porta, (_UtilizaSSL ? true : false));
+
+                if (_porta == 587)
+                {
+                    smtpClient.Connect(_host, _porta, SecureSocketOptions.StartTls);
+                }
+                else
+                {
+                    smtpClient.Connect(_host, _porta, (_UtilizaSSL ? true : false));
+                }
+
                 smtpClient.AuthenticationMechanisms.Remove("XOAUTH2");
 
-                if(_userAuth != string.Empty && _passwordAuth != string.Empty)
+                if (_userAuth != string.Empty && _passwordAuth != string.Empty)
                 {
                     smtpClient.Authenticate(_userAuth, _passwordAuth);
                 }
@@ -118,5 +134,19 @@ namespace Robo_EnvioEmail
 
             return "OK";
         }
+
+        public bool EmailValido(string email)
+        {
+            try
+            {
+                var endereco = new MailboxAddress(email, email);
+                return endereco.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }

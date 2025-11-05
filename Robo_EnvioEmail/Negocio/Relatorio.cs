@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Office.Interop.Excel;
 using System.Data;
 using Org.BouncyCastle.Bcpg.OpenPgp;
+using System.IO;
 
 namespace Robo_EnvioEmail.Negocio
 {
@@ -15,8 +16,8 @@ namespace Robo_EnvioEmail.Negocio
         public string GerarExcel(System.Data.DataTable dtRelatorio, string sTituloRelatorio, string sPrimeiraColunaValor, string sCaminhoSalvar, string sNomeArquivo)
         {
             Application xlApp = new Application();
-            _Workbook xlWorkbook;
-            _Worksheet xlWorksheet;
+            Workbook xlWorkbook;
+            Worksheet xlWorksheet;
             string sArquivo = "";
             int iCol = 1;
             int iRow = 4;
@@ -56,6 +57,21 @@ namespace Robo_EnvioEmail.Negocio
 
             xlWorksheet.Range["A1", NumeroParaLetra(dtRelatorio.Columns.Count) + iRow].EntireColumn.AutoFit();
 
+            AplicarBordas(xlWorksheet);
+
+            xlWorksheet.Activate();
+            xlWorksheet.PageSetup.Orientation = XlPageOrientation.xlLandscape;
+            xlWorksheet.PageSetup.PaperSize = XlPaperSize.xlPaperA4;
+
+            xlWorksheet.PageSetup.LeftMargin = xlApp.InchesToPoints(0.5);
+            xlWorksheet.PageSetup.RightMargin = xlApp.InchesToPoints(0.5);
+            xlWorksheet.PageSetup.TopMargin = xlApp.InchesToPoints(0.75);
+            xlWorksheet.PageSetup.BottomMargin = xlApp.InchesToPoints(0.75);
+
+            xlWorksheet.PageSetup.Zoom = false;
+            xlWorksheet.PageSetup.FitToPagesWide = 1;
+            xlWorksheet.PageSetup.FitToPagesTall = false;
+
             sArquivo = sCaminhoSalvar + sNomeArquivo + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
 
             xlWorkbook.SaveAs(sArquivo, Type.Missing, Type.Missing, Type.Missing,
@@ -66,6 +82,93 @@ namespace Robo_EnvioEmail.Negocio
             xlApp.Quit();
 
             return sArquivo;
+        }
+
+        public void AplicarBordas(Worksheet sheet)
+        {
+            Range usedRange = sheet.UsedRange;
+
+            var indices = new XlBordersIndex[]
+            {
+                XlBordersIndex.xlEdgeLeft,
+                XlBordersIndex.xlEdgeTop,
+                XlBordersIndex.xlEdgeBottom,
+                XlBordersIndex.xlEdgeRight,
+                XlBordersIndex.xlInsideHorizontal,
+                XlBordersIndex.xlInsideVertical
+            };
+
+            foreach (var index in indices)
+            {
+                Border border = usedRange.Borders[index];
+                border.LineStyle = XlLineStyle.xlContinuous;
+                border.Weight = XlBorderWeight.xlThin;
+            }
+        }
+
+
+        public string ExportarExcelParaPDF(string caminhoArquivoExcel, string caminhoDestinoPDF)
+        {
+            var excelApp = new Application();
+            Workbook workbook = null;
+
+            try
+            {
+                excelApp.Visible = false;
+                excelApp.ScreenUpdating = false;
+
+                workbook = excelApp.Workbooks.Open(caminhoArquivoExcel);
+                workbook.ExportAsFixedFormat(
+                    XlFixedFormatType.xlTypePDF,
+                    caminhoDestinoPDF
+                );
+            }
+            catch(Exception ex)
+            {
+                return "";
+            }
+            finally
+            {
+                if (workbook != null)
+                {
+                    workbook.Close(false);
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+                }
+
+                excelApp.Quit();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+            }
+
+            return caminhoDestinoPDF;
+        }
+
+        public string RetornaArquivosXML(string sCaminhoXML, System.Data.DataTable dtDados)
+        {
+
+            string listaArquivos = string.Empty;
+            string sNomeArquivo;
+            string sSubDiretorio;
+            string sArquivo;
+
+            foreach (DataRow row in dtDados.Rows)
+            {
+                sSubDiretorio = Convert.ToDateTime(row["Emissao"]).Year.ToString() + "." + Convert.ToDateTime(row["Emissao"]).Month.ToString("D2") + "\\";
+                sNomeArquivo = row["Arquivo"].ToString();
+
+                sArquivo = sCaminhoXML + sSubDiretorio + sNomeArquivo;
+
+                if (File.Exists(sArquivo))
+                {
+                    listaArquivos += sArquivo + ";";
+                }
+            }
+
+            if (listaArquivos != string.Empty)
+            {
+                listaArquivos = listaArquivos.Substring(0, listaArquivos.Length - 1);
+            }
+
+            return listaArquivos;
         }
 
         public static string NumeroParaLetra(int numero)

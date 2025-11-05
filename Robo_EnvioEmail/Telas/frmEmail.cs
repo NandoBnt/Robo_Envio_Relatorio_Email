@@ -4,8 +4,10 @@ using System;
 using System.Configuration;
 using System.Data;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Media.Animation;
 
 namespace Robo_EnvioEmail
 {
@@ -25,6 +27,7 @@ namespace Robo_EnvioEmail
         string sUserAuth = string.Empty;
         string sPasswordAuth = string.Empty;
         string sDiretorioArquivo = string.Empty;
+        string sDiretorioXML = string.Empty;
 
         public frmEmail()
         {
@@ -95,6 +98,13 @@ namespace Robo_EnvioEmail
                 return;
             }
 
+            if (settings["DiretorioXMLCTe"] == "")
+            {
+                MessageBox.Show("Necessário configurar o diretório dos arquivos XML no arquivo de configurações.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+
             sHost = ConfigurationManager.AppSettings["Host"].ToString();
             iPorta = Convert.ToInt32(ConfigurationManager.AppSettings["Porta"].ToString());
             bUtilizaSSL = (ConfigurationManager.AppSettings["UtilizaSSL"] == "S" ? true : false);
@@ -105,6 +115,7 @@ namespace Robo_EnvioEmail
             sEmailRemetentePreAlert = ConfigurationManager.AppSettings["Email_Agente"].ToString();
             sSenhaEmailPreAlert = ConfigurationManager.AppSettings["Senha_Agente"].ToString();
             sDiretorioArquivo = ConfigurationManager.AppSettings["DiretorioArquivoEDI"].ToString();
+            sDiretorioXML = ConfigurationManager.AppSettings["DiretorioXMLCTe"].ToString();
 
             if (settings["AuthenticationUser"] != null)
                 sUserAuth = ConfigurationManager.AppSettings["AuthenticationUser"].ToString();
@@ -172,9 +183,9 @@ namespace Robo_EnvioEmail
 
                     timer1.Enabled = false;
 
-                    #region Envio de Relatorio Excel
+                    #region Envio de Relatorio FollowUp Excel
 
-                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando emails pendentes de envio." + Environment.NewLine;
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Verificando emails pendentes de envio." + Environment.NewLine;
                     this.Refresh();
 
                     
@@ -215,12 +226,13 @@ namespace Robo_EnvioEmail
                     sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
                     sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
                     sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
+                    sSQL.Append("Where a.tp_RelatorioFollowUp = 'S'");
 
                     dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
                     if (dt == null || dt.Rows.Count == 0)
                     {
-                        txtStatus.Text += DateTime.Now.ToString("f") + " - Nenhum cliente cadastrado para envio de relatório." + Environment.NewLine;
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Nenhum cliente cadastrado para envio de relatório." + Environment.NewLine;
                         this.Refresh();
                     }
                     else
@@ -231,11 +243,11 @@ namespace Robo_EnvioEmail
 
                             if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
                             {
-                                txtStatus.Text += DateTime.Now.ToString("f") + " - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
                                 continue;
                             }
 
-                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "P", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio");
+                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "P", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_FollowUp");
 
                             sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                                 dr["ds_EmailDestino"].ToString(),
@@ -263,6 +275,92 @@ namespace Robo_EnvioEmail
 
                     #endregion
 
+                    #region Envio de Relatorio PrazoEntrega Excel
+
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Prazo Entrega] - Verificando emails pendentes de envio." + Environment.NewLine;
+                    this.Refresh();
+
+
+                    sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega) as Prazo_Entrega, movNF.cd_notaFiscal as NF," +
+                            " rTrim(Isnull(mov.nr_Minuta, '')) as Minuta, rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
+                            " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
+                            " rTrim(fat.ds_Pessoa) as Faturado, rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, " +
+                            " rTrim(estdest.cd_Estado) UF_Destinatario, " +
+                            " movNF.vl_NotaFiscal Valor_NF, movNF.qt_Volume as Volume," +
+                            " movNF.kg_Mercadoria as Peso, mov.vl_Frete Valor_Frete" +
+                            " From tbdMovimento mov (Nolock)" +
+                            " Inner join tbdMovimentoNotaFiscal MovNF (Nolock) on MovNF.id_Movimento = mov.id_Movimento" +
+                            " Left  join tbd_Site_MovimentoAgendamento Agend on MovNF.id_Movimento = Agend.id_Movimento And MovNF.cd_NotaFiscal = Agend.cd_NotaFiscal" +
+                            " Inner join tbdPessoa fat (Nolock) on mov.id_ClienteFaturamento = fat.id_Pessoa" +
+                            " Inner join tbdPessoa rem (Nolock) on mov.id_Remetente = rem.id_Pessoa" +
+                            " Inner join tbdCidade cidrem (Nolock) on mov.id_CidadeOrigem = cidrem.id_Cidade" +
+                            " Inner join tbdEstado estrem (Nolock) on cidrem.id_Estado = estrem.id_Estado" +
+                            " Inner join tbdCidade ciddest (Nolock) on mov.id_Cidade = ciddest.id_Cidade" +
+                            " Inner join tbdEstado estdest (Nolock) on ciddest.id_Estado = estdest.id_Estado" +
+                            " Where id_ClienteFaturamento = {0} And mov.dt_ImpressaoConhecimento >= '{1}'" +
+                            " And Not Exists(" +
+                            "   Select 1 from tbdOcorrenciaNota x " +
+                            "   Inner join tbdOcorrenciaManifesto y on x.id_Ocorrencia = y.id_OcorrenciaManifesto" +
+                            "   Where x.id_Movimento = MovNF.id_Movimento " +
+                            "       And x.nr_NotaFiscal = MovNF.cd_NotaFiscal " +
+                            "       And y.tp_BaixaAutomatica = 'S'" +
+                            "   )" +
+                            " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
+
+
+                    sSQL.Append("Select").Append(Environment.NewLine);
+                    sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                    sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
+                    sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
+                    sSQL.Append("Where a.tp_RelatorioPrazoEntrega = 'S'");
+
+                    dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
+
+                    if (dt == null || dt.Rows.Count == 0)
+                    {
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Prazo Entrega] - Nenhum cliente cadastrado para envio de relatório." + Environment.NewLine;
+                        this.Refresh();
+                    }
+                    else
+                    {
+                        foreach (DataRow dr in dt.Rows)
+                        {
+                            dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+
+                            if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Prazo Entrega] - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
+                                this.Refresh();
+                                continue;
+                            }
+
+                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "M", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_PrazoEntrega");
+
+                            sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                                dr["ds_EmailDestino"].ToString(),
+                                "",
+                                dr["ds_AssuntoEmail"].ToString(),
+                                dr["ds_CorpoEmail"].ToString(),
+                                sArquivoGerado
+                                );
+
+                            if (sStatusEnvio.ToUpper() == "OK")
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + dr["ds_EmailDestino"] + Environment.NewLine;
+                                this.Refresh();
+                            }
+                            else
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email: " + sStatusEnvio + Environment.NewLine;
+                                this.Refresh();
+                            }
+                        }
+
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                        this.Refresh();
+                    }
+
+                    #endregion
                     ProximaAtualizacao(1);
 
                 }
@@ -280,6 +378,9 @@ namespace Robo_EnvioEmail
                     string sQuery = string.Empty;
                     string sTemplateUpdate = string.Empty;
                     bool bRet = false;
+                    string sArquivoGerado = string.Empty;
+                    string sPDFGerado = string.Empty;
+                    string listaXML = string.Empty;
 
                     timer1.Enabled = false;
 
@@ -357,14 +458,14 @@ namespace Robo_EnvioEmail
 
                     #endregion
 
-                    #region Envio de PreAlert
+                    #region Envio de PreAlert Aéreo
 
-                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando Pré-Alert pendentes de envio." + Environment.NewLine;
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando Pré-Alert Aéreo pendentes de envio." + Environment.NewLine;
                     this.Refresh();
 
                     sQuery = "Select rTrim(Cia.ds_Pessoa) as Cia_Aerea, fechto.nr_AWB as AWB, Ag.ds_Pessoa as Agente_Entrega," +
-                            " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
-                            " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
+                            " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe, 'CTe' + Convert(varchar, mov.id_Movimento) + '_Auto.xml' as Arquivo," +
+                            " Mov.dt_ImpressaoConhecimento as Emissao, rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                             " rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, rTrim(estdest.cd_Estado) UF_Destinatario, " +
                             " mov.vl_NotaFiscal Valor_NF, mov.qt_Volume as Volume, mov.kg_Mercadoria as Peso" +
                             " From tbdFechamentoCiaAerea fechto (Nolock)" +
@@ -397,7 +498,7 @@ namespace Robo_EnvioEmail
 
                     if (dt == null || dt.Rows.Count == 0)
                     {
-                        txtStatus.Text += DateTime.Now.ToString("f") + " - Nenhum Pré-Alert pendente de envio." + Environment.NewLine;
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - Nenhum Pré-Alert Aéreo pendente de envio." + Environment.NewLine;
                         this.Refresh();
                     }
                     else
@@ -410,7 +511,25 @@ namespace Robo_EnvioEmail
                         {
                             dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Agente"].ToString()));
 
-                            string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "K", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+                            sArquivoGerado = ""; sPDFGerado = ""; listaXML = "";
+
+                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "M", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+
+                            // Arquivo PDF do Relatório
+                            sPDFGerado = objRelatorio.ExportarExcelParaPDF(sArquivoGerado, sArquivoGerado.Replace("xlsx", "pdf"));
+
+                            if (sPDFGerado != string.Empty)
+                            {
+                                sArquivoGerado += ";" + sPDFGerado;
+                            }
+
+                            // Lista de XML dos CTes
+                            listaXML = objRelatorio.RetornaArquivosXML(sDiretorioXML, dtRelatorio);
+
+                            if (listaXML != string.Empty)
+                            {
+                                sArquivoGerado += ";" + listaXML;
+                            }
 
                             sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                                 dr["cd_Email"].ToString(),
@@ -431,7 +550,7 @@ namespace Robo_EnvioEmail
                                 {
                                     txtStatus.Text += DateTime.Now.ToString("f") +
                                     " - PréAlert: " + dr["nr_PreAlertEmail"].ToString().Trim() +
-                                    " - Status atualizado para enviado.";
+                                    " - Status atualizado para enviado." + Environment.NewLine;
                                     this.Refresh();
 
                                 }
@@ -454,6 +573,131 @@ namespace Robo_EnvioEmail
 
                     #endregion Envio de PreAlert
 
+                    #region Envio de PreAlert Terrestre
+
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - Verificando Pré-Alert Terrestre pendentes de envio." + Environment.NewLine;
+                    this.Refresh();
+
+                    sQuery = "Select Pre.id_PreManifesto as Pre_Manifesto, rtrim(Pre.cm_PreManifesto) as Observação, rtrim(mov.nr_ConhecimentoTransportadora) as CTRC3, " +
+                            " rTrim(Ag.ds_Pessoa) as Agente_Entrega," +
+                            " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe, 'CTe' + Convert(varchar, mov.id_Movimento) + '_Auto.xml' as Arquivo, " +
+                            " Mov.dt_ImpressaoConhecimento as Emissao, " +
+                            " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
+                            " rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, rTrim(estdest.cd_Estado) UF_Destinatario, " +
+                            " mov.vl_NotaFiscal Valor_NF, mov.qt_Volume as Volume, mov.kg_Mercadoria as Peso" +
+                            " From tbdPreManifesto Pre (Nolock)" +
+                            " Inner join tbdPreManifestoItem Item (Nolock) on Pre.id_PreManifesto = Item.id_PreManifesto" +
+                            " Inner join tbdMovimento Mov (Nolock) on Item.id_Movimento = Mov.id_Movimento" +
+                            " Inner join tbdPessoa Rem (Nolock) on Mov.id_Remetente = Rem.id_Pessoa" +
+                            " Inner join tbdCidade CidRem (Nolock) on Rem.id_Cidade = CidRem.id_Cidade" +
+                            " Inner join tbdEstado EstRem (Nolock) on CidRem.id_Estado = EstRem.id_Estado" +
+                            " Inner join tbdCidade CidDest (Nolock) on Mov.id_CidadeDestinatario = CidDest.id_Cidade" +
+                            " Inner join tbdEstado EstDest (Nolock) on CidDest.id_Estado = EstDest.id_Estado" +
+                            " Inner join tbdPessoa Ag (Nolock) on mov.id_Agente = Ag.id_Pessoa" +
+                            //" Where Pre.id_PreManifesto = 80429 " +
+                            " Where Mov.id_Agente = {0} " +
+                            "   And Pre.tp_GeradoPreAlert = 'S' And Isnull(Pre.tp_EnviadoPreAlert, '') <> 'S'" +
+                            " Order by Ag.ds_Pessoa, Rem.ds_Pessoa, Mov.nr_Conhecimento";
+
+                    sSQL.Clear();
+
+                    sSQL.Append("Select").Append(Environment.NewLine);
+                    sSQL.Append("Distinct Pre.id_PreManifesto, Mov.id_Agente as id_Agente, Pre.nr_PreAlertEmail, Ag.ds_Pessoa as ds_Agente, Ag.cd_Email").Append(Environment.NewLine);
+                    sSQL.Append("From tbdPreManifesto Pre (Nolock) ").Append(Environment.NewLine);
+                    sSQL.Append("Inner join tbdPreManifestoItem Item (Nolock) on Pre.id_PreManifesto = Item.id_PreManifesto").Append(Environment.NewLine); 
+                    sSQL.Append("Inner join tbdMovimento Mov(Nolock) on Item.id_Movimento = Mov.id_Movimento").Append(Environment.NewLine); 
+                    sSQL.Append("Inner join tbdPessoa Ag (Nolock) on Mov.id_Agente = Ag.id_Pessoa").Append(Environment.NewLine);
+                    //sSQL.Append("Where Pre.id_PreManifesto = 80429");
+                    sSQL.Append("Where Pre.tp_GeradoPreAlert = 'S' And Isnull(Pre.tp_EnviadoPreAlert, '') <> 'S'");
+
+                    sTemplateUpdate = "Update tbdPreManifesto set tp_EnviadoPreAlert = 'S'" + Environment.NewLine +
+                        "Where id_PreManifesto = {0}" + Environment.NewLine +
+                        "   And tp_GeradoPreAlert = 'S'" + Environment.NewLine +
+                        "   And nr_PreAlertEmail = {1}";
+
+                    //Log.gravaLog("Query: " + sSQL.ToString(), "E:\\Temp\\");
+
+                    dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
+
+                    if (dt == null || dt.Rows.Count == 0)
+                    {
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - Nenhum Pré-Alert Terrestre pendente de envio." + Environment.NewLine;
+                        this.Refresh();
+                    }
+                    else
+                    {
+                        objEnvioEmail = null;
+
+                        objEnvioEmail = new EnvioEmail(sHost, iPorta, bUtilizaSSL, sEmailRemetentePreAlert, sSenhaEmailPreAlert, sUserAuth, sPasswordAuth);
+
+                        foreach (DataRow dr in dt.Rows)
+                        {
+                            //Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Agente"].ToString()), "E:\\Temp\\");
+
+                            dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Agente"].ToString()));
+
+                            sArquivoGerado = ""; sPDFGerado = ""; listaXML = "";
+
+                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+
+                            // Arquivo PDF do Relatório
+                            sPDFGerado = objRelatorio.ExportarExcelParaPDF(sArquivoGerado, sArquivoGerado.Replace("xlsx", "pdf"));
+
+                            if (sPDFGerado != string.Empty) 
+                            {
+                                sArquivoGerado += ";" + sPDFGerado;
+                            }
+
+                            // Lista de XML dos CTes
+                            listaXML = objRelatorio.RetornaArquivosXML(sDiretorioXML, dtRelatorio);
+
+                            if(listaXML != string.Empty)
+                            {
+                                sArquivoGerado += ";" + listaXML;
+                            }
+
+                            sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                                dr["cd_Email"].ToString(),
+                                "",
+                                "Pré-Alert",
+                                "Segue anexo relação de cargas a entregar.",
+                                sArquivoGerado
+                                );
+
+                            if (sStatusEnvio.ToUpper() == "OK")
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + dr["cd_Email"] + Environment.NewLine;
+                                this.Refresh();
+
+                                bRet = objBase.ExecutaComando(string.Format(sTemplateUpdate, dr["id_PreManifesto"], dr["nr_PreAlertEmail"]));
+
+                                if (bRet)
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("f") +
+                                    " - PréAlert: " + dr["nr_PreAlertEmail"].ToString().Trim() +
+                                    " - Status atualizado para enviado." + Environment.NewLine;
+                                    this.Refresh();
+
+                                }
+                                else
+                                {
+                                    txtStatus.Text += DateTime.Now.ToString("g") + " - Ocorreu erro atualizar o status do PréAlert." + Environment.NewLine;
+                                    this.Refresh();
+                                }
+                            }
+                            else
+                            {
+                                txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email: " + sStatusEnvio + Environment.NewLine;
+                                this.Refresh();
+                            }
+                        }
+
+                        txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                        this.Refresh();
+                    }
+
+                    #endregion Envio de PreAlert Terrestre
+
                     ProximaAtualizacao(2);
                 }
 
@@ -466,7 +710,7 @@ namespace Robo_EnvioEmail
             {
                 txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu erro durante o processo de envio: " + Environment.NewLine
                     + ex.Message.ToString() + Environment.NewLine
-                    + "Trace: " + ex.StackTrace;
+                    + "Trace: " + ex.StackTrace + Environment.NewLine;
                 this.Refresh();
 
                 ProximaAtualizacao(1);
@@ -491,6 +735,11 @@ namespace Robo_EnvioEmail
         {
             txtStatus.Text = "";
             this.Refresh();
+        }
+
+        private void frmEmail_Load(object sender, EventArgs e)
+        {
+            lblVersao.Text = "Versão: " + Assembly.GetExecutingAssembly().GetName().Version.ToString();  
         }
     }
 }
