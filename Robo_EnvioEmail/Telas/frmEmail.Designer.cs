@@ -175,6 +175,7 @@
             this.btnParar.TabIndex = 5;
             this.btnParar.Text = "Parar";
             this.btnParar.UseVisualStyleBackColor = true;
+            this.btnParar.Click += new System.EventHandler(this.btnParar_Click);
             // 
             // btnEnviar
             // 

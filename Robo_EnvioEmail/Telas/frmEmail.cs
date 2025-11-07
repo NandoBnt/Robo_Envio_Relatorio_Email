@@ -221,6 +221,7 @@ namespace Robo_EnvioEmail
                             "   )" +
                             " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
 
+                    sSQL.Clear();
 
                     sSQL.Append("Select").Append(Environment.NewLine);
                     sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
@@ -244,6 +245,7 @@ namespace Robo_EnvioEmail
                             if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
                             {
                                 txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
+                                this.Refresh();
                                 continue;
                             }
 
@@ -307,6 +309,7 @@ namespace Robo_EnvioEmail
                             "   )" +
                             " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
 
+                    sSQL.Clear();
 
                     sSQL.Append("Select").Append(Environment.NewLine);
                     sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
@@ -431,7 +434,7 @@ namespace Robo_EnvioEmail
                                         txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado o cliente: " +
                                         dr["ds_Pessoa"].ToString().Trim() + " - Arquivo: " + fi.Name + Environment.NewLine;
 
-                                        if(File.Exists(diretorioCliente + "\\Transferidos\\" + fi.Name))
+                                        if (File.Exists(diretorioCliente + "\\Transferidos\\" + fi.Name))
                                         {
                                             fi.Delete();
                                         }
@@ -439,7 +442,7 @@ namespace Robo_EnvioEmail
                                         {
                                             fi.MoveTo(diretorioCliente + "\\Transferidos\\" + fi.Name);
                                         }
-                                            
+
                                         this.Refresh();
                                     }
                                 }
@@ -482,6 +485,7 @@ namespace Robo_EnvioEmail
                             "   And fechto.tp_GeradoPreAlert = 'S' And Isnull(fechto.tp_EnviadoPreAlert, '') <> 'S'" +
                             " Order by fechto.nr_AWB, Rem.ds_Pessoa, Mov.nr_Conhecimento";
 
+                    sSQL.Clear();
 
                     sSQL.Append("Select").Append(Environment.NewLine);
                     sSQL.Append("Distinct fechto.id_Destinatario as id_Agente, fechto.nr_PreAlertEmail, Ag.ds_Pessoa as ds_Agente, Ag.cd_Email").Append(Environment.NewLine);
@@ -594,7 +598,6 @@ namespace Robo_EnvioEmail
                             " Inner join tbdCidade CidDest (Nolock) on Mov.id_CidadeDestinatario = CidDest.id_Cidade" +
                             " Inner join tbdEstado EstDest (Nolock) on CidDest.id_Estado = EstDest.id_Estado" +
                             " Inner join tbdPessoa Ag (Nolock) on mov.id_Agente = Ag.id_Pessoa" +
-                            //" Where Pre.id_PreManifesto = 80429 " +
                             " Where Mov.id_Agente = {0} " +
                             "   And Pre.tp_GeradoPreAlert = 'S' And Isnull(Pre.tp_EnviadoPreAlert, '') <> 'S'" +
                             " Order by Ag.ds_Pessoa, Rem.ds_Pessoa, Mov.nr_Conhecimento";
@@ -604,10 +607,9 @@ namespace Robo_EnvioEmail
                     sSQL.Append("Select").Append(Environment.NewLine);
                     sSQL.Append("Distinct Pre.id_PreManifesto, Mov.id_Agente as id_Agente, Pre.nr_PreAlertEmail, Ag.ds_Pessoa as ds_Agente, Ag.cd_Email").Append(Environment.NewLine);
                     sSQL.Append("From tbdPreManifesto Pre (Nolock) ").Append(Environment.NewLine);
-                    sSQL.Append("Inner join tbdPreManifestoItem Item (Nolock) on Pre.id_PreManifesto = Item.id_PreManifesto").Append(Environment.NewLine); 
-                    sSQL.Append("Inner join tbdMovimento Mov(Nolock) on Item.id_Movimento = Mov.id_Movimento").Append(Environment.NewLine); 
+                    sSQL.Append("Inner join tbdPreManifestoItem Item (Nolock) on Pre.id_PreManifesto = Item.id_PreManifesto").Append(Environment.NewLine);
+                    sSQL.Append("Inner join tbdMovimento Mov(Nolock) on Item.id_Movimento = Mov.id_Movimento").Append(Environment.NewLine);
                     sSQL.Append("Inner join tbdPessoa Ag (Nolock) on Mov.id_Agente = Ag.id_Pessoa").Append(Environment.NewLine);
-                    //sSQL.Append("Where Pre.id_PreManifesto = 80429");
                     sSQL.Append("Where Pre.tp_GeradoPreAlert = 'S' And Isnull(Pre.tp_EnviadoPreAlert, '') <> 'S'");
 
                     sTemplateUpdate = "Update tbdPreManifesto set tp_EnviadoPreAlert = 'S'" + Environment.NewLine +
@@ -643,7 +645,7 @@ namespace Robo_EnvioEmail
                             // Arquivo PDF do Relatório
                             sPDFGerado = objRelatorio.ExportarExcelParaPDF(sArquivoGerado, sArquivoGerado.Replace("xlsx", "pdf"));
 
-                            if (sPDFGerado != string.Empty) 
+                            if (sPDFGerado != string.Empty)
                             {
                                 sArquivoGerado += ";" + sPDFGerado;
                             }
@@ -651,7 +653,7 @@ namespace Robo_EnvioEmail
                             // Lista de XML dos CTes
                             listaXML = objRelatorio.RetornaArquivosXML(sDiretorioXML, dtRelatorio);
 
-                            if(listaXML != string.Empty)
+                            if (listaXML != string.Empty)
                             {
                                 sArquivoGerado += ";" + listaXML;
                             }
