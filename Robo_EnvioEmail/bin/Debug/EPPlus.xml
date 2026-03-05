@@ -531,7 +531,7 @@
         </member>
         <member name="P:OfficeOpenXml.ConditionalFormatting.Contracts.IExcelConditionalFormattingFourIconSet`1.Icon4">
             <summary>
-            Icon4 (part of the 4 ou 5 Icon Set)
+            Icon4 (part of the 4 or 5 Icon Set)
             </summary>
         </member>
         <member name="T:OfficeOpenXml.ConditionalFormatting.Contracts.IExcelConditionalFormattingGreaterThan">
@@ -3710,6 +3710,12 @@
             <param name="Color">The color of the databar</param>
             <returns></returns>
         </member>
+        <member name="M:OfficeOpenXml.ConditionalFormatting.RangeConditionalFormatting.GetConditionalFormattings">
+            <summary>
+            Gets all conditional formatting rules intersecting whith the range.
+            </summary>
+            <returns>A list of formatting rules</returns>
+        </member>
         <member name="M:OfficeOpenXml.ConditionalFormatting.Rules.CachingCF.#ctor(OfficeOpenXml.ConditionalFormatting.eExcelConditionalFormattingRuleType,OfficeOpenXml.ExcelAddress,System.Int32,OfficeOpenXml.ExcelWorksheet)">
             <summary>
             
@@ -4591,6 +4597,18 @@
             To keep track of if the collection has changed. Must be increased on each change operation.
             </summary>
         </member>
+        <member name="M:OfficeOpenXml.Core.ColumnSpanDictionary`1.UpdateColumn(System.Int32,OfficeOpenXml.ExcelColumn)">
+            <summary>
+            Note: "Update" really just means "Add if does not exist"
+            This as the ExcelColumn value is a reference and updates automatically.
+            </summary>
+            <param name="col"></param>
+            <param name="columnValue"></param>
+        </member>
+        <member name="M:OfficeOpenXml.Core.ColumnSpanDictionary`1.UpdateDeletedPositions(System.Int32,System.Int32)">
+            On insert/delete the positions update After the cell values have been inserted/deleted to final positions.
+            Using This method for deletions and the standard InsertAndShift after inserts.
+        </member>
         <member name="T:OfficeOpenXml.Core.EPPlusReadOnlyList`1">
             <summary>
             A readonly collection of a generic type
@@ -4668,6 +4686,40 @@
         <member name="P:OfficeOpenXml.Core.RangeQuadTree.QuadItem`1.Ranges">
             <summary>
             Ranges intersecting with this quad.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Core.RangeQuadTree.QuadItem`1.AddParentInsertRow(System.Int32,OfficeOpenXml.Core.RangeQuadTree.QuadRangeItem{`0})">
+            <summary>
+            
+            </summary>
+            <param name="i"></param>
+            <param name="r"></param>
+            <returns>Returns true if overflow occurres</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Core.RangeQuadTree.QuadRange.InsertRow(System.Int32,System.Int32)">
+            <summary>
+            Inserts row(s) into the quad tree. Intersecting ranges will be expanded. Ranges after the row will be shifted.
+            </summary>
+            <param name="fromRow">Insert from this row.</param>
+            <param name="rows">Insert this number of cols.</param>
+            <returns>True if affected</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Core.RangeQuadTree.QuadRange.InsertColumn(System.Int32,System.Int32)">
+            <summary>
+            Inserts columns(s) into the quad tree. Intersecting ranges will be expanded. Ranges after the column will be shifted.
+            </summary>
+            <param name="fromCol">Insert from this column.</param>
+            <param name="cols">Insert this number of column.</param>
+            <returns>True if affected</returns>        
+        </member>
+        <member name="P:OfficeOpenXml.Core.RangeQuadTree.QuadTree`1.MaxCol">
+            <summary>
+            The maximum column of all ranges in the tree. -1 if not ranges exist.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Core.RangeQuadTree.QuadTree`1.MaxRow">
+            <summary>
+            The maximum row of all ranges in the tree. -1 if not ranges exist.
             </summary>
         </member>
         <member name="T:OfficeOpenXml.Core.Worksheet.Fill.FillDateParams">
@@ -4806,6 +4858,12 @@
             Loads all serialized font metrics from the resources/SerializedFonts.zip archive
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.Core.Worksheet.Core.Worksheet.Fonts.GenericMeasurements.GenericFontMetricsTextMeasurer.MeasureWrappedTextCells">
+            <summary>
+            If the text measurer should measure wrap text cells. 
+            Only CR, LF or CRLF should be considered.
+            </summary>
+        </member>
         <member name="M:OfficeOpenXml.Core.Worksheet.Core.Worksheet.Fonts.GenericMeasurements.GenericFontMetricsTextMeasurer.MeasureText(System.String,OfficeOpenXml.Interfaces.Drawing.Text.MeasurementFont)">
             <summary>
             Measures the supplied text
@@ -4935,12 +4993,12 @@
         </member>
         <member name="F:OfficeOpenXml.eFillDirection.Row">
             <summary>
-            The fill is performed row-wise
+            The fill is performed row-wise (Left/Right)
             </summary>
         </member>
         <member name="F:OfficeOpenXml.eFillDirection.Column">
             <summary>
-            The fill is performed column-wise
+            The fill is performed column-wise (Down/Up)
             </summary>
         </member>
         <member name="T:OfficeOpenXml.eFillStartPosition">
@@ -5267,12 +5325,12 @@
             Handling for ExcelAdress updates of DataValidations
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.DataValidation.ExcelDatavalidationAddress.BeforeChangeAddress">
+        <member name="M:OfficeOpenXml.DataValidation.ExcelDatavalidationAddress.BeforeChangeAddress(System.String)">
             <summary>
             Called before the address changes
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.DataValidation.ExcelDatavalidationAddress.ChangeAddress">
+        <member name="M:OfficeOpenXml.DataValidation.ExcelDatavalidationAddress.ChangeAddress(System.String)">
             <summary>
             Called when the address changes
             </summary>
@@ -6295,6 +6353,12 @@
             Adds a <see cref="T:OfficeOpenXml.DataValidation.Contracts.IExcelDataValidationCustom"/> to the range.
             </summary>
             <returns>A <see cref="T:OfficeOpenXml.DataValidation.Contracts.IExcelDataValidationCustom"/> that can be configured for custom validation</returns>
+        </member>
+        <member name="M:OfficeOpenXml.DataValidation.IRangeDataValidation.GetDataValidations">
+            <summary>
+            Get a list of DataValidations within the supplied range
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:OfficeOpenXml.DataValidation.IRangeDataValidation.ClearDataValidation(System.Boolean)">
             <summary>
@@ -7798,6 +7862,11 @@
             The tick marks will be outside the plot area.
             </summary>
         </member>
+        <member name="T:OfficeOpenXml.Drawing.Chart.eAxisType">
+            <summary>
+            Axis type
+            </summary>
+        </member>
         <member name="F:OfficeOpenXml.Drawing.Chart.eAxisType.Val">
             <summary>
             Value axis
@@ -7815,7 +7884,7 @@
         </member>
         <member name="F:OfficeOpenXml.Drawing.Chart.eAxisType.Serie">
             <summary>
-            Series axis
+            Series axis (Type of Category axis usually in 3D charts)
             </summary>
         </member>
         <member name="T:OfficeOpenXml.Drawing.Chart.eBarChartType">
@@ -9956,6 +10025,12 @@
             3D-settings
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.Drawing.Chart.ExcelChart.AutoTitleDeleted">
+            <summary>
+            Indicates if auto title is used. Set to false if auto title is used. Auto title is used on for example pivot charts to map to the data fields to the title and series.
+            Also see <seealso cref="M:OfficeOpenXml.Drawing.Chart.ExcelChartTitleStandard.SetAutoTitle"/>
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.Drawing.Chart.ExcelChartAxis">
             <summary>
             An axis for a chart
@@ -10184,11 +10259,14 @@
             Removes the axis title
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.Drawing.Chart.ExcelChartAxis.ChangeAxisType(OfficeOpenXml.Drawing.Chart.eAxisType)">
+        <member name="M:OfficeOpenXml.Drawing.Chart.ExcelChartAxis.ChangeAxisType(OfficeOpenXml.Drawing.Chart.eAxisType,System.Boolean)">
             <summary>
-            
+            Change type of axis. Can only change Value axis to Date axis and vice-versa
+            Or Category Axis to Serie Axis and vice versa.
             </summary>
             <param name="type"></param>
+            <param name="throwException">Set to false to allow axisTypes with unexpected behaviour</param>
+            <exception cref="T:System.InvalidOperationException"></exception>
         </member>
         <member name="T:OfficeOpenXml.Drawing.Chart.ExcelChartAxisStandard">
             <summary>
@@ -11426,11 +11504,18 @@
         <member name="P:OfficeOpenXml.Drawing.Chart.ExcelChartStandard.XAxis">
             <summary>
             The X Axis
+            (Usually Category Axis)
             </summary>
         </member>
         <member name="P:OfficeOpenXml.Drawing.Chart.ExcelChartStandard.YAxis">
             <summary>
             The Y Axis
+            (Usually Value Axis)
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Drawing.Chart.ExcelChartStandard.Drawings">
+            <summary>
+            A collection of drawings inside the chart. Allows shapes and pictures
             </summary>
         </member>
         <member name="T:OfficeOpenXml.Drawing.Chart.ExcelChartStandardSerie">
@@ -17167,17 +17252,24 @@
         </member>
         <member name="F:OfficeOpenXml.Drawing.eEditAs.Absolute">
             <summary>
-            The Drawing is positioned absolute to the top left corner of the worksheet and is NOT resized when rows and columns are resized. 
+            The Drawing is positioned absolute to the top left corner of the worksheet or chart and is NOT resized when rows and columns or the chart is resized. 
             </summary>
         </member>
         <member name="F:OfficeOpenXml.Drawing.eEditAs.OneCell">
             <summary>
             The Drawing will move with the worksheet but is NOT resized when rows and columns are resized. 
+            This setting is not applicable for a drawing inside a chart.
             </summary>
         </member>
         <member name="F:OfficeOpenXml.Drawing.eEditAs.TwoCell">
             <summary>
             The Drawing will move and resize when rows and columns are resized. 
+            For drawings inside a chart the drawing will resize when the chart is resized.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Drawing.eEditAs.RelSize">
+            <summary>
+            The Drawing will move and resize according to it's parent chart. 
             </summary>
         </member>
         <member name="T:OfficeOpenXml.Drawing.eEndSize">
@@ -18340,6 +18432,12 @@
             <summary>
             A collection of vml drawings used for header and footer picturess
             </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.Vml.ExcelVmlDrawingPictureCollection.Remove(OfficeOpenXml.Drawing.Vml.ExcelVmlDrawingPicture)">
+            <summary>
+            Remove the specified picture item from the collection.
+            </summary>
+            <param name="item">The picture object to remove.</param>
         </member>
         <member name="P:OfficeOpenXml.Drawing.Vml.ExcelVmlDrawingPictureCollection.Item(System.Int32)">
             <summary>
@@ -21992,6 +22090,13 @@
             </summary>
             <returns>The drawing as a chart</returns>
         </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelChartAsType.ChartStandard">
+            <summary>
+            Returns return the drawing as a generic standard chart. This the base class for all charts standard charts (charts defined before Office 2016).
+            If this drawing is not a chart, null will be returned
+            </summary>
+            <returns>The drawing as a standard chart</returns>
+        </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelChartAsType.AreaChart">
             <summary>
             Returns the drawing as an area chart. 
@@ -22069,6 +22174,13 @@
             </summary>
             <returns>The drawing as a surface chart</returns>
         </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelChartAsType.ChartExtended">
+            <summary>
+            Returns return the drawing as a generic standard chart. This the base class for all charts extended charts (charts defined in or later Office 2016).
+            If this drawing is not an extended chart, null will be returned
+            </summary>
+            <returns>The drawing as a extended chart</returns>
+        </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelChartAsType.SunburstChart">
             <summary>
             Returns return the drawing as a sunburst chart. 
@@ -22117,6 +22229,129 @@
             If this drawing is not a region map chart, null will be returned
             </summary>
             <returns>The drawing as a region map chart</returns>
+        </member>
+        <member name="T:OfficeOpenXml.Drawing.ExcelChartDrawings">
+            <summary>
+            Collection of drawings inside a chart
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelChartDrawings.DrawingXml">
+            <summary>
+            A reference to the drawing xml document
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddShape(System.String,OfficeOpenXml.Drawing.eShapeStyle)">
+            <summary>
+            Adds a shape to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="Style">The type of shape</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddPicture(System.String,System.String)">
+            <summary>
+            Adds a picture to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="ImagePath">The path to the image file.</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddPicture(System.String,System.String,OfficeOpenXml.ExcelHyperLink)">
+            <summary>
+            Adds a picture to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="ImagePath">The path to the image file.</param>
+            <param name="HyperLink">A hyperlink for the shape</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddPicture(System.String,System.IO.FileInfo)">
+            <summary>
+            Adds a picture to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="ImageFile">The image file.</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddPicture(System.String,System.IO.FileInfo,System.Uri)">
+            <summary>
+            Adds a picture to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="ImageFile">The image file.</param>
+            <param name="HyperLink">A hyperlink for the shape</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddPicture(System.String,System.IO.Stream)">
+            <summary>
+            Adds a picture to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="ImageStream">The stream containing image file.</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.AddPicture(System.String,System.IO.Stream,System.Uri)">
+            <summary>
+            Adds a picture to the chart
+            </summary>
+            <param name="Name">The name of the shape</param>
+            <param name="ImageStream">The stream containing image file.</param>
+            <param name="HyperLink">A hyperlink for the shape</param>
+            <returns>The shape</returns>
+        </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelChartDrawings.Item(System.Int32)">
+            <summary>
+            Returns the drawing at the specified position.  
+            </summary>
+            <param name="PositionID">The position of the drawing. 0-base</param>
+            <returns>The drawing</returns>
+        </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelChartDrawings.Item(System.String)">
+            <summary>
+            Returns the drawing matching the specified name
+            </summary>
+            <param name="Name">The name of the drawing</param>
+            <returns>The drawing</returns>
+        </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelChartDrawings.Count">
+            <summary>
+            Number of items in the collection
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.Remove(System.Int32)">
+            <summary>
+            Removes a drawing.
+            </summary>
+            <param name="Index">The index of the drawing</param>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.Remove(OfficeOpenXml.Drawing.ExcelDrawing)">
+            <summary>
+            Removes a drawing.
+            </summary>
+            <param name="Drawing">The drawing</param>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.Remove(System.String)">
+            <summary>
+            Removes a drawing.
+            </summary>
+            <param name="Name">The name of the drawing</param>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.GetEnumerator">
+            <summary>
+            Returns an Enumerator for the drawings in the chart
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Returns an Enumerator for the drawings in the chart
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelChartDrawings.Dispose">
+            <summary>
+            Disposes the drawings collection and all drawings in it.
+            </summary>
         </member>
         <member name="T:OfficeOpenXml.Drawing.ExcelConnectionShape">
             <summary>
@@ -22282,7 +22517,7 @@
         <member name="P:OfficeOpenXml.Drawing.ExcelDrawing.From">
             <summary>
             Top Left position, if the shape is of the one- or two- cell anchor type
-            Otherwise this propery is set to null
+            Otherwise this property is set to null
             </summary>
         </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelDrawing.Position">
@@ -22293,7 +22528,7 @@
         <member name="P:OfficeOpenXml.Drawing.ExcelDrawing.Size">
             <summary>
             The extent of the shape, if the shape is of the one- or absolute- anchor type.
-            Otherwise this propery is set to null
+            Otherwise this property is set to null
             </summary>
         </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelDrawing.To">
@@ -22311,12 +22546,13 @@
             Provides access to type conversion for all top-level drawing classes.
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.Drawing.ExcelDrawing.GetDrawing(OfficeOpenXml.Drawing.ExcelDrawings,System.Xml.XmlNode)">
+        <member name="M:OfficeOpenXml.Drawing.ExcelDrawing.GetDrawing(OfficeOpenXml.Drawing.ExcelDrawings,System.Xml.XmlNode,OfficeOpenXml.Drawing.DrawingsCollectionType)">
             <summary>
             Add new Drawing types here
             </summary>
             <param name="drawings">The drawing collection</param>
             <param name="node">Xml top node</param>
+            <param name="DrawingsType">The type of collection the drawing belongs to.</param>
             <returns>The Drawing object</returns>
         </member>
         <member name="M:OfficeOpenXml.Drawing.ExcelDrawing.SetPosition(System.Int32,System.Int32)">
@@ -22346,7 +22582,7 @@
         </member>
         <member name="M:OfficeOpenXml.Drawing.ExcelDrawing.ChangeCellAnchor(OfficeOpenXml.Drawing.eEditAs)">
             <summary>
-            This will change the cell anchor type without modifiying the position and size.
+            This will change the cell anchor type without modifying the position and size.
             </summary>
             <param name="type">The cell anchor type to change to</param>
         </member>
@@ -22420,6 +22656,15 @@
             This method will be called before save, so use it only if you need the coordinates of the drawing.
             </summary>
         </member>
+        <member name="M:OfficeOpenXml.Drawing.ExcelDrawing.Copy(OfficeOpenXml.Drawing.Chart.ExcelChartStandard,System.Int32,System.Int32)">
+            <summary>
+            Create a copy of target chart.
+            </summary>
+            <param name="targetChart"></param>
+            <param name="PixelTop"></param>
+            <param name="PixelLeft"></param>
+            <exception cref="T:System.NotSupportedException"></exception>
+        </member>
         <member name="M:OfficeOpenXml.Drawing.ExcelDrawing.Copy(OfficeOpenXml.ExcelWorksheet,System.Int32,System.Int32,System.Int32,System.Int32)">
             <summary>
             Copies the drawing to the supplied worksheets. The copy will be positioned using the <paramref name="row"/> and <paramref name="col"/> parameters
@@ -22428,7 +22673,7 @@
             <param name="row">The top row where the drawing will be placed.</param>
             <param name="col">The left column where the drawing will be placed.</param>
             <param name="rowOffset">Row offset in pixels from the row start positions. int.MinValue </param>
-            <param name="colOffset">Column offset in pixels fromp the column start position</param>
+            <param name="colOffset">Column offset in pixels from the column start position</param>
         </member>
         <member name="T:OfficeOpenXml.Drawing.ExcelDrawingAsType">
             <summary>
@@ -23596,16 +23841,6 @@
             <param name="Location">Location to access the image from</param>
             <returns>A picture object</returns>
         </member>
-        <member name="M:OfficeOpenXml.Drawing.ExcelDrawings.AddPicture(System.String,System.IO.FileInfo,System.Uri,OfficeOpenXml.Drawing.PictureLocation)">
-            <summary>
-            Adds a picture to the worksheet
-            </summary>
-            <param name="Name"></param>
-            <param name="ImageFile">The image file</param>
-            <param name="Hyperlink">Picture Hyperlink</param>
-            <param name="Location">Location to access the image from</param>
-            <returns>A picture object</returns>
-        </member>
         <member name="M:OfficeOpenXml.Drawing.ExcelDrawings.AddPicture(System.String,System.IO.Stream)">
             <summary>
             Adds a picture to the worksheet using a stream. EPPlus will identify the type of image automatically.
@@ -24256,6 +24491,16 @@
             Position of the a drawing.
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelPosition.X">
+            <summary>
+            X coordinate for shapes in charts.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Drawing.ExcelPosition.Y">
+            <summary>
+            Y coordinate for shapes in charts.
+            </summary>
+        </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelPosition.Column">
             <summary>
             The column
@@ -24321,7 +24566,7 @@
         </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelShapeBase.Border">
             <summary>
-            Access to Border propesties
+            Access to Border properties
             </summary>
         </member>
         <member name="P:OfficeOpenXml.Drawing.ExcelShapeBase.Effect">
@@ -24515,11 +24760,6 @@
             The generic image handler is valid in all environments, so it will always return true.
             </summary>
             <returns></returns>
-        </member>
-        <member name="T:OfficeOpenXml.Drawing.ImageUtils">
-            <summary>
-            Only used in .NET framework.
-            </summary>
         </member>
         <member name="T:OfficeOpenXml.Drawing.Interfaces.IDrawingDataLabel">
             <summary>
@@ -28394,6 +28634,11 @@
             Indicates that the function is an ErrorHandlingFunction.
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.ExcelFunction.ExecutesLambda">
+            <summary>
+            Indicates if the function is Executing a LAMBDA.
+            </summary>
+        </member>
         <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.ExcelFunction.ArrayBehaviour">
             <summary>
             Describes how the function works with input ranges and returning arrays.
@@ -28712,6 +28957,15 @@
             <param name="dataType"></param>
             <returns></returns>
         </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.Excel.Functions.ExcelFunction.CreateDynamicArrayResult(System.Object,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType,OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResultType)">
+            <summary>
+            Use this method to create a result to return from Excel functions. 
+            </summary>
+            <param name="result"></param>
+            <param name="dataType"></param>
+            <param name="compileResultType"></param>
+            <returns></returns>
+        </member>
         <member name="M:OfficeOpenXml.FormulaParsing.Excel.Functions.ExcelFunction.CreateDynamicArrayResult(System.Object,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType,OfficeOpenXml.FormulaParsing.LexicalAnalysis.FormulaRangeAddress)">
             <summary>
             Use this method to create a result to return from Excel functions.
@@ -28719,6 +28973,16 @@
             <param name="result"></param>
             <param name="dataType"></param>
             <param name="address"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.Excel.Functions.ExcelFunction.CreateDynamicArrayResult(System.Object,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType,OfficeOpenXml.FormulaParsing.LexicalAnalysis.FormulaRangeAddress,OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResultType)">
+            <summary>
+            Use this method to create a result to return from Excel functions.
+            </summary>
+            <param name="result"></param>
+            <param name="dataType"></param>
+            <param name="address"></param>
+            <param name="compileResultType"></param>
             <returns></returns>
         </member>
         <member name="M:OfficeOpenXml.FormulaParsing.Excel.Functions.ExcelFunction.CreateAddressResult(OfficeOpenXml.FormulaParsing.IRangeInfo,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType)">
@@ -29212,6 +29476,16 @@
         <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.FunctionArgument.ValueAsExcelErrorValue">
             <summary>
             Tries to parse <see cref="P:OfficeOpenXml.FormulaParsing.Excel.Functions.FunctionArgument.Value"/> as <see cref="T:OfficeOpenXml.ExcelErrorValue"/>
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.FunctionArgument.IsVariableResult">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.FunctionArgument.ValueAsVariableCompileResult">
+            <summary>
+            
             </summary>
         </member>
         <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.FunctionArgument.ValueAsRangeInfo">
@@ -29872,6 +30146,11 @@
             Minimum arguments
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.Excel.Functions.Text.Text.ArrayBehaviour">
+            <summary>
+            First arg could be a range
+            </summary>
+        </member>
         <member name="M:OfficeOpenXml.FormulaParsing.Excel.Functions.Text.Text.Execute(System.Collections.Generic.IList{OfficeOpenXml.FormulaParsing.Excel.Functions.FunctionArgument},OfficeOpenXml.FormulaParsing.ParsingContext)">
             <summary>
             Execute function
@@ -29931,13 +30210,14 @@
             Operator
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.FormulaParsing.Excel.Operators.IOperator.Apply(OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.ParsingContext)">
+        <member name="M:OfficeOpenXml.FormulaParsing.Excel.Operators.IOperator.Apply(OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.ParsingContext,System.Boolean)">
             <summary>
             Apply
             </summary>
             <param name="left"></param>
             <param name="right"></param>
             <param name="ctx"></param>
+            <param name="ignoreErrors"></param>
             <returns></returns>
         </member>
         <member name="P:OfficeOpenXml.FormulaParsing.Excel.Operators.IOperator.Precedence">
@@ -29955,13 +30235,14 @@
             Implementation of operators in formula calculation.
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.FormulaParsing.Excel.Operators.Operator.Apply(OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.ParsingContext)">
+        <member name="M:OfficeOpenXml.FormulaParsing.Excel.Operators.Operator.Apply(OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult,OfficeOpenXml.FormulaParsing.ParsingContext,System.Boolean)">
             <summary>
             Apply
             </summary>
             <param name="left"></param>
             <param name="right"></param>
             <param name="ctx"></param>
+            <param name="ignoreErrors"></param>
             <returns></returns>
         </member>
         <member name="P:OfficeOpenXml.FormulaParsing.Excel.Operators.Operator.Plus">
@@ -30129,6 +30410,11 @@
             Intersect
             </summary>
         </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.Excel.Operators.Operators.Assign">
+            <summary>
+            Assign
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.FormulaParsing.Excel.Operators.OperatorsDict">
             <summary>
             Operators dictionary
@@ -30294,6 +30580,11 @@
             <summary>
             If true, EPPlus will download the images in the IMAGE function even if they exists in the package. The same URL will only be downloaded once.
             If false(default), EPPlus will only download images that doesn't exist in the package.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.ExcelCalculationOption.EnableUnicodeAwareStringOperations">
+            <summary>
+            Enables Unicode-aware string operations, ensuring correct handling of surrogate pairs for comparisons, substrings, and sorting within the library.
             </summary>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.ExcelDataProvider">
@@ -30997,6 +31288,11 @@
             Is result of resolved excelRange
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult.IsVariableResult">
+            <summary>
+            Returns true if the compile result from a variable
+            </summary>
+        </member>
         <member name="P:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult.Address">
             <summary>
             Range address
@@ -31118,6 +31414,30 @@
             The result is a local image
             </summary>
         </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResults.VariableCompileResult">
+            <summary>
+            CompileResult that represents a variable
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResults.VariableCompileResult.#ctor(System.String,System.Object,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType,OfficeOpenXml.FormulaParsing.LexicalAnalysis.FormulaRangeAddress)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="variableName">name of the variable</param>
+            <param name="result">The compiled result</param>
+            <param name="dataType">Data type of the compiled result</param>
+            <param name="address">Address of the calculated cell</param>
+        </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResults.VariableCompileResult.VariableName">
+            <summary>
+            Name of the variable
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResults.VariableCompileResult.IsVariableResult">
+            <summary>
+            Overrides <see cref="P:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult.IsVariableResult"/>. For this class always true.
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResults.WebImageCompileResult">
             <summary>
             Local image compile result
@@ -31208,6 +31528,21 @@
             Web image data type
             </summary>
         </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType.LambdaVariableDeclaration">
+            <summary>
+            Lambda variable declaration
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType.LambdaCalculation">
+            <summary>
+            Lambda calculation expressions
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType.LambdaTokens">
+            <summary>
+            Lambda tokens
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.EnumerableExpression">
             <summary>
             This expression represents a literal array where rows and cols are separated with comma and semicolon.
@@ -31258,9 +31593,99 @@
             <param name="context"></param>
             <returns></returns>
         </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculationExpression">
+            <summary>
+            Represents a Lambda calculation and encapsulates a <see cref="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator"/>. 
+            This expression is on the expression stack while the lambda arguments are collected and its 
+            <see cref="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculationExpression.Compile"/> method will return a <see cref="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator"/> ready to execute.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator">
+            <summary>
+            Stores the Lambda tokens and can be called multiple times with different parameters. 
+            For each time the tokens are converted RPN tokens and runs through the calculation 
+            via the new <see cref="M:OfficeOpenXml.FormulaParsing.RpnFormulaExecution.ExecutePartialFormula(OfficeOpenXml.FormulaParsing.RpnOptimizedDependencyChain,OfficeOpenXml.FormulaParsing.RpnFormula,OfficeOpenXml.FormulaParsing.ExcelCalculationOption,System.Boolean,OfficeOpenXml.FormulaParsing.FormulaExpressions.VariableStorage.VariableStorageScope)"/> method.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.#ctor(System.Collections.Generic.List{OfficeOpenXml.FormulaParsing.LexicalAnalysis.Token},OfficeOpenXml.FormulaParsing.FormulaExpressions.VariableStorage.VariableStorageScope,OfficeOpenXml.FormulaParsing.RpnFormula)">
+            <summary>
+            Tokens representing the LAMBDA expression. For example if the LAMBDA function
+            is LAMBDA(x, 1, x + 1) the tokens supplied to the LambdaCalculator will be x + 1
+            </summary>
+            <param name="lambdaTokens"></param>
+            <param name="scope"></param>
+            <param name="formula"></param>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.BeginCalculation">
+            <summary>
+            Resets the calculator for a new calculation
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.ResetVariables">
+            <summary>
+            Resets the counting of variables
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.SetVariables(System.Collections.Generic.List{OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResults.VariableCompileResult},OfficeOpenXml.FormulaParsing.ParsingContext)">
+            <summary>
+            Sets the variables values, creates new variables if not present.
+            </summary>
+            <param name="variables">List of variables</param>
+            <param name="ctx">The parsing context</param>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.SetVariableValue(System.Int32,System.Object,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType,OfficeOpenXml.FormulaParsing.ParsingContext)">
+            <summary>
+            Sets a variable's value in the variable scope.
+            </summary>
+            <param name="index">0-based index</param>
+            <param name="value">name of the variable</param>
+            <param name="dt">DataType of the variable</param>
+            <param name="ctx">The parsing context</param>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.SetVariableValue(System.Int32,System.Object,OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType,OfficeOpenXml.FormulaParsing.ParsingContext,OfficeOpenXml.FormulaParsing.LexicalAnalysis.FormulaRangeAddress)">
+            <summary>
+            Sets a variable's value in the variable scope.
+            </summary>
+            <param name="index">0-based index</param>
+            <param name="value">name of the variable</param>
+            <param name="dt">DataType of the variable</param>
+            <param name="ctx">The parsing context</param>
+            <param name="address">The cell address if applicable</param>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaCalculator.Execute(OfficeOpenXml.FormulaParsing.ParsingContext)">
+            <summary>
+            Executes the Lambda function and returns the result
+            </summary>
+            <param name="ctx"></param>
+            <returns></returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaFunctionExpression">
+            <summary>
+            This expression handles the initial execution of a LAMBDA function.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaNameFunctionExpression">
+            <summary>
+            Represents a LAMBDA function stored as a Name in the workbook.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaTokensExpression">
+            <summary>
+            An expression that holds the tokens of the Lambda expression, i.e. the tokens that 
+            comes after the CommaLambda token. The <see cref="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.CompileResult"/> returned from the 
+            <see cref="M:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaTokensExpression.Compile"/> function of this expression will have 
+            an instance <see cref="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.LambdaTokensResult"/> as value with <see cref="F:OfficeOpenXml.FormulaParsing.FormulaExpressions.DataType.LambdaTokens"/>.
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.MultiRangeExpression">
             <summary>
             This class represents a range that contains more than one address, where the ranges are separated by a comma.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.FormulaParsing.FormulaExpressions.VariableFunctionExpression">
+            <summary>
+            Base class for functions that handles variables such as LET and LAMBDA.
             </summary>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.FormulaParser">
@@ -31683,6 +32108,12 @@
             </summary>
             <param name="index">The index of the address.</param>
             <returns>The address adjusted within the dimension of the worksheet.</returns>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.IRangeInfo.GetRangeInfoByValue">
+            <summary>
+            Gets dimension of rang excluding null values
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.IAddressInfo">
             <summary>
@@ -32376,6 +32807,21 @@
             Represents a parameter variable in functions such as LET or LAMBDA
             </summary>
         </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.LexicalAnalysis.TokenType.CommaLambda">
+            <summary>
+            Represents a comma that comes before a LAMBDA declaration
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.LexicalAnalysis.TokenType.EmptyArgument">
+            <summary>
+            Represents an empty argument (i.e. between two commas or a comma and a closing parentheses).
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.FormulaParsing.LexicalAnalysis.TokenType.EtaReducedLambda">
+            <summary>
+            Represent a eta Lambda.
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.FormulaParsing.Logging.IFormulaParserLogger">
             <summary>
             Used for logging during FormulaParsing
@@ -32495,6 +32941,11 @@
             If false(default), EPPlus will only download images that don't exist in the package.
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.ParsingConfiguration.EnableUnicodeAwareStringOperations">
+            <summary>
+            Enables Unicode-aware string operations, ensuring correct handling of surrogate pairs for comparisons, substrings, and sorting within the library.
+            </summary>
+        </member>
         <member name="P:OfficeOpenXml.FormulaParsing.ParsingConfiguration.Logger">
             <summary>
             The <see cref="T:OfficeOpenXml.FormulaParsing.Logging.IFormulaParserLogger"/> of the parser
@@ -32597,6 +33048,11 @@
         <member name="P:OfficeOpenXml.FormulaParsing.ParsingContext.CurrentWorksheet">
             <summary>
             The worksheet where the current formula is located.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.FormulaParsing.ParsingContext.CalcOption">
+            <summary>
+            Calculation options/parameters set for the Calculate call.
             </summary>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.PrecisionAndRoundingStrategy">
@@ -32828,6 +33284,12 @@
             </summary>
             <param name="index">The address index.</param>
             <returns>The adjusted address.</returns>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.Ranges.EpplusExcelExternalRangeInfo.GetRangeInfoByValue">
+            <summary>
+            Gets the <see cref="T:OfficeOpenXml.FormulaParsing.IRangeInfo" /> for the range for the first and last value in the range (top-left to bottom-right)
+            </summary>
+            <returns>The range</returns>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.Ranges.ExternalCellInfo">
             <summary>
@@ -33078,6 +33540,12 @@
             </summary>
             <param name="index">Not applicable on InMemoryRange's.</param>
             <returns>The address.</returns>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.Ranges.InMemoryRange.GetRangeInfoByValue">
+            <summary>
+            Gets the <see cref="T:OfficeOpenXml.FormulaParsing.IRangeInfo" /> for the range for the first and last value in the range (top-left to bottom-right)
+            </summary>
+            <returns>The range</returns>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.Ranges.NameInfo">
             <summary>
@@ -33417,6 +33885,12 @@
             </summary>
             <param name="index">The index of the address.</param>
             <returns>The address adjusted within the dimension of the worksheet.</returns>
+        </member>
+        <member name="M:OfficeOpenXml.FormulaParsing.Ranges.RangeInfo.GetRangeInfoByValue">
+            <summary>
+            Gets the <see cref="T:OfficeOpenXml.FormulaParsing.IRangeInfo" /> for the range for the first and last value in the range (top-left to bottom-right)
+            </summary>
+            <returns>The range</returns>
         </member>
         <member name="T:OfficeOpenXml.FormulaParsing.Utilities.ArgumentInfo`1">
             <summary>
@@ -34031,6 +34505,26 @@
             You have a commercial license purchased at https://epplussoftware.com/licenseoverview
             </summary>
         </member>
+        <member name="T:OfficeOpenXml.eWorkbookVisibility">
+            <summary>
+             Represents the visible state of the workbook window.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.eWorkbookVisibility.Hidden">
+            <summary>
+            The workbook window is hidden, but can be shown by the user via the user interface.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.eWorkbookVisibility.VeryHidden">
+            <summary>
+            The workbook window is hidden and cannot be shown in the user interface. This state is only available programmatically.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.eWorkbookVisibility.Visible">
+            <summary>
+            The workbook window is visible.
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.EPPlusCommercialLicenseType">
             <summary>
             The type of commercial license
@@ -34392,12 +34886,12 @@
             <param name="wb"></param>
             <param name="wsName"></param>
         </member>
-        <member name="M:OfficeOpenXml.ExcelAddressBase.BeforeChangeAddress">
+        <member name="M:OfficeOpenXml.ExcelAddressBase.BeforeChangeAddress(System.String)">
             <summary>
             Method for actions that must be taken before address is changed
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.ExcelAddressBase.ChangeAddress">
+        <member name="M:OfficeOpenXml.ExcelAddressBase.ChangeAddress(System.String)">
             <summary>
             Called when the address changes
             </summary>
@@ -35364,14 +35858,29 @@
             Print header and footer 
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.ExcelHeaderFooterText.LeftAligned">
+            <summary>
+            The text collection of the left part of the header or footer.
+            </summary>
+        </member>
         <member name="P:OfficeOpenXml.ExcelHeaderFooterText.LeftAlignedText">
             <summary>
             Get/set the text to appear on the left hand side of the header (or footer) on the worksheet.
             </summary>
         </member>
+        <member name="P:OfficeOpenXml.ExcelHeaderFooterText.Centered">
+            <summary>
+            The text collection of the centered part of the header or footer.
+            </summary>
+        </member>
         <member name="P:OfficeOpenXml.ExcelHeaderFooterText.CenteredText">
             <summary>
             Get/set the text to appear in the center of the header (or footer) on the worksheet.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.ExcelHeaderFooterText.RightAligned">
+            <summary>
+            The text collection of the right part of the header or footer.
             </summary>
         </member>
         <member name="P:OfficeOpenXml.ExcelHeaderFooterText.RightAlignedText">
@@ -35393,6 +35902,12 @@
             <param name="PictureStream">The stream containing the picture</param>
             <param name="pictureType">The image format of the picture stream</param>
             <param name="Alignment">Alignment. The image object will be inserted at the end of the Text.</param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelHeaderFooterText.RemoveImage(OfficeOpenXml.Drawing.Vml.ExcelVmlDrawingPicture)">
+            <summary>
+            Remove the specified item from the collection.
+            </summary>
+            <param name="item">The item to remove.</param>
         </member>
         <member name="T:OfficeOpenXml.ExcelHeaderFooter">
             <summary>
@@ -35771,6 +36286,46 @@
             A comment for the Name
             </summary>
         </member>
+        <member name="F:OfficeOpenXml.ExcelNamedRange.ValidateCellAddressInFormulas">
+            <summary>
+            Set to true to validate and update formulas with cell references.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.BeforeChangeAddress(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.ChangeAddress(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.SetRange(OfficeOpenXml.ExcelRangeBase,System.Boolean)">
+            <summary>
+            Set a range for this name. Will remove exsisting formula and value.
+            </summary>
+            <param name="range"></param>
+            <param name="allowRelativeAddress"></param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.SetFormula(System.String)">
+            <summary>
+            Set a formula for this name. Will remove exsisting range and value.
+            </summary>
+            <param name="formula">The formula for this name.</param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.GetFormula">
+            <summary>
+            Get a formula for this name.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.SetValue(System.Object)">
+            <summary>
+            Set a value for this name. Will remove exsisting range and formula.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRange.GetValue">
+            <summary>
+            Get a value for this name.
+            </summary>
+        </member>
         <member name="M:OfficeOpenXml.ExcelNamedRange.ToString">
             <summary>
             Returns a string representation of the object
@@ -35803,6 +36358,7 @@
         <member name="M:OfficeOpenXml.ExcelNamedRangeCollection.Add(System.String,OfficeOpenXml.ExcelRangeBase,System.Boolean)">
             <summary>
             Adds a new named range
+            Also see <seealso cref="M:OfficeOpenXml.ExcelNamedRangeCollection.AddFormula(System.String,System.String)"/> and <seealso cref="M:OfficeOpenXml.ExcelNamedRangeCollection.AddValue(System.String,System.Object)"/>
             </summary>
             <param name="Name">The name</param>
             <param name="Range">The range</param>
@@ -35816,6 +36372,22 @@
             <param name="Name">The name</param>
             <param name="Range">The range</param>
         </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRangeCollection.Add(System.String,System.Object)">
+            <summary>
+            Adds a new defined named with a fixed value.
+            </summary>
+            <param name="Name">The name</param>
+            <param name="Value">The value</param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelNamedRangeCollection.AddRange(System.String,OfficeOpenXml.ExcelRangeBase,System.Boolean)">
+            <summary>
+            Adds a new named range
+            </summary>
+            <param name="name">The name</param>
+            <param name="range">The range</param>
+            <param name="allowRelativeAddress"></param>
+            <returns></returns>
+        </member>
         <member name="M:OfficeOpenXml.ExcelNamedRangeCollection.AddName(System.String,OfficeOpenXml.ExcelRangeBase,System.Boolean)">
             <summary>
             Adds the name without validation as Excel allows some names on load that is not permitted in the GUI
@@ -35827,7 +36399,7 @@
         </member>
         <member name="M:OfficeOpenXml.ExcelNamedRangeCollection.AddValue(System.String,System.Object)">
             <summary>
-            Add a defined name referencing value
+            Add a defined name referencing a value
             </summary>
             <param name="Name">The name</param>
             <param name="value">The value for the name</param>
@@ -36131,7 +36703,7 @@
             <param name="password">The password to decrypt the package.</param>
             <returns></returns>
         </member>
-        <member name="M:OfficeOpenXml.ExcelPackage.WriteFileToStream(System.String,System.IO.Stream)">
+        <member name="M:OfficeOpenXml.ExcelPackage.WriteFileToStream(System.String,System.IO.MemoryStream)">
             <summary>
             Pull request from  perkuypers to read open Excel workbooks
             </summary>
@@ -37300,7 +37872,7 @@
             Reference to the worksheet
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.ExcelRangeBase.ChangeAddress">
+        <member name="M:OfficeOpenXml.ExcelRangeBase.ChangeAddress(System.String)">
             <summary>
             On change address handler
             </summary>
@@ -37644,6 +38216,11 @@
             </summary>
             <returns>A reference comment of the top left cell</returns>
         </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.CopyWithParams(OfficeOpenXml.ExcelRangeBase,OfficeOpenXml.ExcelRangeCopyOptionFlags[],OfficeOpenXml.ExcelRangeCopyOptionFlags[])">
+            <summary>
+            Copies user and internal params
+            </summary>
+        </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.Copy(OfficeOpenXml.ExcelRangeBase)">
             <summary>
             Copies the range of cells to another range. 
@@ -37655,14 +38232,21 @@
             Copies the range of cells to an other range
             </summary>
             <param name="Destination">The start cell where the range will be copied.</param>
-            <param name="excelRangeCopyOptionFlags">Cell properties that will not be copied.</param>
+            <param name="excelRangeCopyOptionFlags">Options for copying.</param>
         </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.Copy(OfficeOpenXml.ExcelRangeBase,OfficeOpenXml.ExcelRangeCopyOptionFlags[])">
             <summary>
             Copies the range of cells to an other range
             </summary>
             <param name="Destination">The start cell where the range will be copied.</param>
-            <param name="excelRangeCopyOptionFlags">Cell properties that will not be copied.</param>
+            <param name="excelRangeCopyOptionFlags">Options for copying.</param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.Copy(OfficeOpenXml.ExcelRangeBase,OfficeOpenXml.ExcelRangeCopyOnly)">
+            <summary>
+            Copy only the properties specified
+            </summary>
+            <param name="Destination"></param>
+            <param name="flag"></param>
         </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.CopyFill(OfficeOpenXml.ExcelRangeBase)">
             <summary>
@@ -37675,7 +38259,7 @@
             Copies the range of cells to another range of cells. The desination ranges rows and columns needs to be a multiple of the source's ranges rows and columns.
             </summary>
             <param name="Destination">The range of cells to copy into.</param>
-            <param name="excelRangeCopyOptionFlags">Cell properties that will not be copied. Fill property will be set.</param>
+            <param name="excelRangeCopyOptionFlags">Options for copying. Fill property will be set.</param>
         </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.CopyTranspose(OfficeOpenXml.ExcelRangeBase)">
             <summary>
@@ -37688,7 +38272,7 @@
             Copies the range of cells to another range of cells transposed.
             </summary>
             <param name="Destination">The range of cells to copy into.</param>
-            <param name="excelRangeCopyOptionFlags">Cell properties that will not be copied. Transpose property will be set.</param>
+            <param name="excelRangeCopyOptionFlags">Options for copying. Transpose property will be set.</param>
         </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.CopyStyles(OfficeOpenXml.ExcelRangeBase)">
             <summary>
@@ -37696,6 +38280,34 @@
             If the destination range is larger than the source range, the styles of the column to the right and the row at the bottom will be expanded to the destination.
             </summary>
             <param name="Destination">The destination range</param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.CopyFormulas(OfficeOpenXml.ExcelRangeBase)">
+            <summary>
+            Copy formulas from source range to destination range.
+            Note: Like Excel "Paste Special", also copies underlying cell values.
+            </summary>
+            <param name="Destination"></param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.CopyFormulas(OfficeOpenXml.ExcelRangeBase,OfficeOpenXml.ExcelRangeCopyOperations)">
+            <summary>
+            Copy only formulas from source range to destination range.
+            Note: Like Excel "Paste Special", also copies underlying cell values.
+            </summary>
+            <param name="Destination"></param>
+            <param name="fillOrTranspose">Fill or transpose options</param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.CopyValues(OfficeOpenXml.ExcelRangeBase)">
+            <summary>
+            Copy only cell values from source range to destination range.
+            </summary>
+            <param name="Destination"></param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.CopyValues(OfficeOpenXml.ExcelRangeBase,OfficeOpenXml.ExcelRangeCopyOperations)">
+            <summary>
+            Copy only cell values from source range to destination range.
+            </summary>
+            <param name="Destination"></param>
+            <param name="fillOrTranspose">Fill or transpose options</param>
         </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.Clear">
             <summary>
@@ -37935,7 +38547,7 @@
         </member>
         <member name="M:OfficeOpenXml.ExcelRangeBase.FillList``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
-            Fills the range columnwise using the values in the list. 
+            Fills the range columnwise (Down) using the values in the list. 
             </summary>
             <typeparam name="T">Type used in the list.</typeparam>
             <param name="list">The list to use.</param>
@@ -38983,6 +39595,12 @@
             </summary>
             <param name="match"></param>
         </member>
+        <member name="M:OfficeOpenXml.ExcelRangeColumn.Copy(OfficeOpenXml.ExcelRangeColumn)">
+            <summary>
+            Copies this RangeColumn to destinationColumnRange
+            </summary>
+            <param name="destinationColumnRange"></param>
+        </member>
         <member name="M:OfficeOpenXml.ExcelRangeColumn.Dispose">
             <summary>
             Disposes this object
@@ -39077,6 +39695,72 @@
         <member name="F:OfficeOpenXml.ExcelRangeCopyOptionFlags.ExcludeWebPictures">
             <summary>
             Exclude any web pictures (i.e. added via the IMAGE function) within the range.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOptionFlags.IncludeFullColumn">
+            <summary>
+            Copy attributes of the column e.g. width of the column
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOptionFlags.IncludeFullRow">
+            <summary>
+            Copy attributes of the row e.g. height of the row
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.Exclude">
+            <summary>
+            Util const for getting only all exclude flags. Without special options like Fill, Transpose etc.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.ExcelRangeCopyOperations">
+            <summary>
+            Simplified enum for oper Fill and Transpose from ExcelRangeCopyOptionFlags
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOperations.Fill">
+            <summary>
+            Fill range with repeated data. The desination ranges rows and columns needs to be a multiple of the source's ranges rows and columns.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOperations.Transpose">
+            <summary>
+            Transpose the copied data
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOperations.FillAndTranspose">
+            <summary>
+            Add flag for both of previous options
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.ExcelRangeCopyOnly">
+            <summary>
+            <para>Flags to only copy certain parts of a range.</para>
+            This provides the options of Excel's "Paste Special"
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOnly.Formulas">
+            <summary>
+            Paste only formulas.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOnly.Values">
+            <summary>
+            Paste only values
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOnly.Formats">
+            <summary>
+            Paste only formatting
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOnly.Comments">
+            <summary>
+            Paste only Comments and Threaded Comments
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelRangeCopyOnly.Validations">
+            <summary>
+            Paste only validation
             </summary>
         </member>
         <member name="T:OfficeOpenXml.IExcelRow">
@@ -39295,6 +39979,12 @@
             Delete all rows that match the predicate
             </summary>
             <param name="match"></param>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeRow.Copy(OfficeOpenXml.ExcelRangeRow)">
+            <summary>
+            Copy this range of rows to the destination rowRange
+            </summary>
+            <param name="destinationRowRange"></param>
         </member>
         <member name="T:OfficeOpenXml.ExcelRow">
             <summary>
@@ -39571,7 +40261,7 @@
         </member>
         <member name="M:OfficeOpenXml.ExcelStyles.PropertyChange(OfficeOpenXml.Style.StyleBase,OfficeOpenXml.Style.StyleChangeEventArgs)">
             <summary>
-            Handels changes of properties on the style objects
+            Handles changes of properties on the style objects
             </summary>
             <param name="sender"></param>
             <param name="e"></param>
@@ -40251,13 +40941,13 @@
         </member>
         <member name="F:OfficeOpenXml.ExcelTextSettings.textLengthThreshold">
             <summary>
-            A percentage of the widest text. Since charaters in different fonts have different widths we use this threshold remove characters from the longer string for comparing to the current text.
+            A percentage of the widest text. Since characters in different fonts have different widths we use this threshold remove characters from the longer string for comparing to the current text.
             This is so we can skip obvious shorter strings and save time on calculating it's actual width.
             </summary>
         </member>
         <member name="F:OfficeOpenXml.ExcelTextSettings.AutofitRows">
             <summary>
-            The ammount of rows to check for when autofitting, starts from top. A value set to 0 or lower means checking all rows in the column.
+            The amount of rows to check for when autofitting, starts from top. A value set to 0 or lower means checking all rows in the column.
             </summary>
         </member>
         <member name="P:OfficeOpenXml.ExcelTextSettings.GenericTextMeasurer">
@@ -40269,6 +40959,12 @@
             <summary>
             Measures a text with default settings when there is no other option left...
             </summary>
+        </member>
+        <member name="F:OfficeOpenXml.ExcelTextSettings._measureWrappedTextCells">
+            <summary>
+            Should return true if the text measurer should measure wrap text cells. Only CR, LF or CRLF should be considered
+            </summary>
+            <returns>True if the measurer can be .</returns>
         </member>
         <member name="T:OfficeOpenXml.ExcelCalcMode">
             <summary>
@@ -40601,6 +41297,16 @@
         <member name="P:OfficeOpenXml.ExcelWorkbookView.FirstSheet">
             <summary>
             The first visible worksheet in the worksheets collection. 
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.ExcelWorkbookView.TabRatio">
+            <summary>
+            The ratio between the sheet tabs and the horizontal scrollbar. Default value is 600.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.ExcelWorkbookView.Visibility">
+            <summary>
+            Represents the visible state of the workbook window.
             </summary>
         </member>
         <member name="T:OfficeOpenXml.ExcelWorksheet">
@@ -41666,7 +42372,9 @@
         </member>
         <member name="M:OfficeOpenXml.ExcelWorksheetView.FreezePanes(System.Int32,System.Int32)">
             <summary>
-            Freeze the columns and rows starting from <see cref="P:OfficeOpenXml.ExcelWorksheetView.TopLeftCell"/>
+            Freeze the columns and rows starting from <see cref="P:OfficeOpenXml.ExcelWorksheetView.TopLeftCell"/> <br/><br/>
+            
+            Note that if the <br/>(<paramref name="Row"/> - hiddenRows == 1 &#38;&#38; <paramref name="Column"/> - hiddenCols == 1)<br/> UnFreezePanes() is called instead
             </summary>
             <param name="Row">Rows from the <see cref="P:OfficeOpenXml.ExcelWorksheetView.TopLeftCell"/>. Starts from 1</param>
             <param name="Column">Columns from the <see cref="P:OfficeOpenXml.ExcelWorksheetView.TopLeftCell"/>. Starts from 1</param>
@@ -44538,6 +45246,13 @@
             </summary>
             <returns>A string that represents the current object.</returns>
         </member>
+        <member name="M:OfficeOpenXml.ExternalReferences.ExcelExternalWorksheet.GetDimension">
+            <summary>
+            Dimension address for the worksheet for cells with a value or a style set. 
+            Top left cell to Bottom right.
+            If the worksheet has no cells, null is returned        
+            </summary>
+        </member>
         <member name="T:OfficeOpenXml.ExternalReferences.ExcelExternalWorksheetCollection">
             <summary>
             A collection of external worksheets
@@ -45657,10 +46372,18 @@
         </member>
         <member name="M:OfficeOpenXml.ExcelErrorValue.Create(OfficeOpenXml.eErrorType)">
             <summary>
-            Creates an <see cref="T:OfficeOpenXml.ExcelErrorValue"/> from a <see cref="T:OfficeOpenXml.ExcelErrorValue"/>
+            Creates an <see cref="T:OfficeOpenXml.ExcelErrorValue"/> from a <see cref="T:OfficeOpenXml.eErrorType"/>
             </summary>
             <param name="errorType">The type of error to create</param>
             <returns>The <see cref="T:OfficeOpenXml.ExcelErrorValue"/></returns>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelErrorValue.CreateRichDataError(OfficeOpenXml.eErrorType)">
+            <summary>
+            Creates a <see cref="T:OfficeOpenXml.ExcelRichDataErrorValue"/> from a <see cref="T:OfficeOpenXml.eErrorType"/>
+            </summary>
+            <param name="errorType">The type of error to create></param>
+            <returns></returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
         </member>
         <member name="P:OfficeOpenXml.ExcelErrorValue.AsCompileResult">
             <summary>
@@ -66890,6 +67613,374 @@
             <param name="underline"></param>
             <param name="strikeout"></param>
         </member>
+        <member name="T:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection">
+            <summary>
+            The collection of ExcelHeaderFooterTextItems.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Picture">
+            <summary>
+            The drawing vml reference to inserted picture.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.TextLength">
+            <summary>
+            The length of the text of left, center and right header footer fields.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Item(System.Int32)">
+            <summary>
+            Returns the ExcelHeaderFooterTextItem at index
+            </summary>
+            <param name="index">the index of item to return.</param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Add(OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem)">
+            <summary>
+            Add an ExcelHeaderFooterTextItem to the end of the collection.
+            </summary>
+            <param name="textItem"></param>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddText(System.String)">
+            <summary>
+            Add a string to the end of the collection.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddPageNumber(System.Int32)">
+            <summary>
+            Add the page number to the end of the collection.
+            </summary>
+            <param name="number">Amount to offset the page number with. Default is 0.</param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddNumberOfPages">
+            <summary>
+            Add the number of pages to the end of the collection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddSheetName">
+            <summary>
+            Add the sheet name to the end of the collection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddFilePath">
+            <summary>
+            Add the file path to the end of the collection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddFileName">
+            <summary>
+            Add the file name to the end of the collection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddCurrentDate">
+            <summary>
+            Add the current date to the end of the collection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddCurrentTime">
+            <summary>
+            Add the current time to the end of the collection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddImage(System.IO.FileInfo)">
+            <summary>
+            Add a picture to the end of the collection.
+            </summary>
+            <param name="pictureFile">The FileInfo object for the picture.</param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.AddImage(System.IO.Stream,OfficeOpenXml.Drawing.ePictureType)">
+            <summary>
+            Add the file path to the end of the collection using a stream.
+            </summary>
+            <param name="pictureStream">The picture stream.</param>
+            <param name="pictureType">The file type of the picture.</param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Insert(System.Int32,OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem)">
+            <summary>
+            Insert an ExcelHeaderFooterTextItem at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <param name="item"></param>
+            <exception cref="T:System.IndexOutOfRangeException"></exception>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertText(System.Int32,System.String)">
+            <summary>
+            Insert a string at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <param name="text"></param>
+            <returns></returns>
+            <exception cref="T:System.IndexOutOfRangeException"></exception>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertPageNumber(System.Int32,System.Int32)">
+            <summary>
+            Insert the page number at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <param name="number"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertNumberOfPages(System.Int32)">
+            <summary>
+            Insert the number of pages at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertSheetName(System.Int32)">
+            <summary>
+            Insert the sheet name at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertFilePath(System.Int32)">
+            <summary>
+            Insert the file path at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertFileName(System.Int32)">
+            <summary>
+            Insert the file name at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertCurrentDate(System.Int32)">
+            <summary>
+            Insert the current date at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertCurrentTime(System.Int32)">
+            <summary>
+            Insert the current time at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertImage(System.Int32,System.IO.FileInfo)">
+            <summary>
+            Insert a picture at specified position in the collection.
+            </summary>
+            <param name="index"></param>
+            <param name="pictureFile"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.InsertImage(System.Int32,System.IO.Stream,OfficeOpenXml.Drawing.ePictureType)">
+            <summary>
+            Insert a picture at specified position in the collection using a stream.
+            </summary>
+            <param name="index"></param>
+            <param name="pictureStream"></param>
+            <param name="pictureType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Remove(OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem)">
+            <summary>
+            Remove the specified item from the collection.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.RemoveAt(System.Int32)">
+            <summary>
+            Remove the specified item at index in collection.
+            </summary>
+            <param name="index"></param>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.RemovePicture">
+            <summary>
+            Remove the picture from the header or footer.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Clear">
+            <summary>
+            Clear the collection.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Count">
+            <summary>
+            The number of objects in the collection.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextCollection.Text">
+            <summary>
+            Get the raw text of the collection.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes">
+            <summary>
+            Enum for inserting format codes into an ExcelHeaderFooterTextCollection.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.Text">
+            <summary>
+            Indicates that the format is a text.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.PageNumber">
+            <summary>
+            Inserts page number.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.NumberOfPages">
+            <summary>
+            Inserts the number of pages.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.SheetName">
+            <summary>
+            Inserts sheet name.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.FilePath">
+            <summary>
+            Inserts file path.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.FileName">
+            <summary>
+            Inserts file name.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.CurrentDate">
+            <summary>
+            Inserts current date.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.CurrentTime">
+            <summary>
+            Inserts current time.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterFormattingCodes.Image">
+            <summary>
+            Indicates an image is inserted.
+            </summary>
+        </member>
+        <member name="T:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem">
+            <summary>
+            An ExcelHeaderFooterTextItem object used for the ExcelHeaderFooterTextCollection
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Bold">
+            <summary>
+            If text is bold.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Italic">
+            <summary>
+            If text is italic.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Underline">
+            <summary>
+            If text is underlined.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.DoubleUnderline">
+            <summary>
+            If text is double underlined.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Color">
+            <summary>
+            Color of text.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Theme">
+            <summary>
+            The text theme.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Tint">
+            <summary>
+            Tint of the text theme.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Outline">
+            <summary>
+            If text is outlined.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Shadow">
+            <summary>
+            If text has a shadow.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Striketrough">
+            <summary>
+            If text has a strikethrough.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.SuperScript">
+            <summary>
+            If text is superscript.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.SubScript">
+            <summary>
+            If text is subscript.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.FontName">
+            <summary>
+            The text font name.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.FontSize">
+            <summary>
+            The text size.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.FormatCode">
+            <summary>
+            The text format code. Used for inserting dates, page numbers and more.
+            </summary>
+        </member>
+        <member name="F:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.PageNumberSuffix">
+            <summary>
+            Suffix for page number.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.Text">
+            <summary>
+            The text.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.#ctor">
+            <summary>
+            Creates an empty ExcelHeaderFooterTextItem object.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.#ctor(System.String)">
+            <summary>
+            Creates an ExcelHeaderFooterTextItem object with a text.
+            </summary>
+            <param name="text">The objects text</param>
+        </member>
+        <member name="M:OfficeOpenXml.Style.HeaderFooterTextFormat.ExcelHeaderFooterTextItem.GetThemeOrColorAsString">
+            <summary>
+            Get the theme or color as a string in format &amp;KTTSNNN for theme and &amp;KRRGGBB for color.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:OfficeOpenXml.Style.ExcelParagraph">
             <summary>
             Handels paragraph text
@@ -73601,7 +74692,7 @@
             <param name="argumentName">parameter/argument name</param>
             <exception cref="T:System.ArgumentOutOfRangeException"></exception>
         </member>
-        <member name="M:OfficeOpenXml.Utils.AttributeExtensions.EncodeXMLAttribute(System.String)">
+        <member name="M:OfficeOpenXml.Utils.AttributesUtils.AttributeExtensions.EncodeXMLAttribute(System.String)">
             <summary>
             Encode to XML (special characteres: &apos; &quot; &gt; &lt; &amp;)
             </summary>
@@ -73669,111 +74760,43 @@
             <param name="other">The other item</param>
             <returns></returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.TryParseNumericString(System.String,System.Double@,System.Globalization.CultureInfo)">
-            <summary>
-            Tries to parse a double from the specified <paramref name="candidateString"/> which is expected to be a string value.
-            </summary>
-            <param name="candidateString">The string value.</param>
-            <param name="numericValue">The double value parsed from the specified <paramref name="candidateString"/>.</param>
-            <param name="cultureInfo">Other <see cref="T:System.Globalization.CultureInfo"/> than Current culture</param>
-            <returns>True if <paramref name="candidateString"/> could be parsed to a double; otherwise, false.</returns>        
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.TryParseBooleanString(System.String,System.Boolean@)">
-            <summary>
-            Tries to parse a boolean value from the specificed <paramref name="candidateString"/>.
-            </summary>
-            <param name="candidateString">The value to check for boolean-ness.</param>
-            <param name="result">The boolean value parsed from the specified <paramref name="candidateString"/>.</param>
-            <returns>True if <paramref name="candidateString"/> could be parsed </returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.TryParseIntString(System.String,System.Int32@)">
-            <summary>
-            Tries to parse an int value from the specificed <paramref name="candidateString"/>.
-            </summary>
-            <param name="candidateString">The value to check for boolean-ness.</param>
-            <param name="result">The boolean value parsed from the specified <paramref name="candidateString"/>.</param>
-            <returns>True if <paramref name="candidateString"/> could be parsed </returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.TryParseDateString(System.String,System.DateTime@)">
-            <summary>
-            Tries to parse a <see cref="T:System.DateTime"/> from the specified <paramref name="candidateString"/> which is expected to be a string value.
-            </summary>
-            <param name="candidateString">The string value.</param>
-            <param name="result">The double value parsed from the specified <paramref name="candidateString"/>.</param>
-            <returns>True if <paramref name="candidateString"/> could be parsed to a double; otherwise, false.</returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.GetValueDouble(System.Object,System.Boolean,System.Boolean)">
-            <summary>
-            Convert an object value to a double 
-            </summary>
-            <param name="v"></param>
-            <param name="ignoreBool"></param>
-            <param name="retNaN">Return NaN if invalid double otherwise 0</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.ExcelEncodeString(System.IO.StreamWriter,System.String)">
-            <summary>
-            Return true if preserve space attribute is set.
-            </summary>
-            <param name="sw"></param>
-            <param name="t"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.ExcelEncodeString(System.Text.StringBuilder,System.String,System.Boolean)">
-            <summary>
-            Return true if preserve space attribute is set.
-            </summary>
-            <param name="sb"></param>
-            <param name="t"></param>
-            <param name="encodeTabLF"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.ExcelEncodeString(System.String,System.Boolean)">
-            <summary>
-            Return true if preserve space attribute is set.
-            </summary>
-            <param name="t"></param>
-            <param name="crLfEncode"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.GetTypedCellValue``1(System.Object)">
-            <summary>
-                Convert cell value to desired type, including nullable structs.
-                When converting blank string to nullable struct (e.g. ' ' to int?) null is returned.
-                When attempted conversion fails exception is passed through.
-            </summary>
-            <typeparam name="T">
-                The type to convert to.
-            </typeparam>
-            <returns>
-                The <paramref name="value"/> converted to <typeparamref name="T"/>.
-            </returns>
-            <remarks>
-                If input is string, parsing is performed for output types of DateTime and TimeSpan, which if fails throws <see cref="T:System.FormatException"/>.
-                Another special case for output types of DateTime and TimeSpan is when input is double, in which case <see cref="M:System.DateTime.FromOADate(System.Double)"/>
-                is used for conversion. This special case does not work through other types convertible to double (e.g. integer or string with number).
-                In all other cases 'direct' conversion <see cref="M:System.Convert.ChangeType(System.Object,System.Type)"/> is performed.
-            </remarks>
-            <exception cref="T:System.FormatException">
-                <paramref name="value"/> is string and its format is invalid for conversion (parsing fails)
-            </exception>
-            <exception cref="T:System.InvalidCastException">
-                <paramref name="value"/> is not string and direct conversion fails
-            </exception>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.ConvertUtil.FromOADateExcel(System.Double)">
-            <summary>
-            Handles the issue with Excel having the incorrect values before 1900-03-01. Excel has 1900-02-29 as a valid value, but it does not exists in the calendar. Dates between 1900-02-28 and 1900-01-01 shuld be subtracted added 1 to the value. 0 in Excel is 1900-01-00 which is not valid in .NET. 
-            </summary>
-            <param name="d"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.Extensions.EnumExtensions.ToEnumString(System.Enum)">
+        <member name="M:OfficeOpenXml.Utils.EnumUtils.EnumExtensions.ToEnumString(System.Enum)">
             <summary>
             Returns the enum value with first char lower case
             </summary>
             <param name="enumValue"></param>
             <returns></returns>
+        </member>
+        <member name="T:OfficeOpenXml.Utils.EPPlusMemoryManager">
+            <summary>
+            The purpose of this class is to encapsulate the calls the <see cref="T:OfficeOpenXml.Utils.RecyclableMemory"/>'s GetStream methods.
+            By wrapping these methods we can catch errors like <see cref="T:System.IO.FileNotFoundException"/> and <see cref="T:System.IO.FileLoadException"/>.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.FileUtils.StreamUtil.CopyStream(System.IO.Stream,System.IO.Stream@)">
+            <summary>
+            Copies the input stream to the output stream.
+            </summary>
+            <param name="inputStream">The input stream.</param>
+            <param name="outputStream">The output stream.</param>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.FileUtils.StreamUtil.CopyStreamAsync(System.IO.Stream,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Copies the input stream to the output stream.
+            </summary>
+            <param name="inputStream">The input stream.</param>
+            <param name="outputStream">The output stream.</param>
+            <param name="cancellationToken">The cancellation token</param>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.Formula.FormulaUtils.AddWorksheetReferenceToFormula(System.String,OfficeOpenXml.ExcelWorksheet,System.Boolean)">
+            <summary>
+            This method detects cell addresses and updates them so they have reference to the supplied worksheet. Example: SUM(A1 + B2) becomes SUM('Sheet 1'A$1$ + 'Sheet 1'!$B$2)
+            </summary>
+            <param name="formula">Formula to check</param>
+            <param name="ws">Worksheet to add</param>
+            <param name="allowRelativeAddress">If address is relative or absolute. Default is absolute.</param>
+            <returns>A string containing the formual with worksheet reference on cell addresses.</returns>
+            <exception cref="T:OfficeOpenXml.FormulaParsing.Exceptions.InvalidFormulaException">If worksheet is null and a cell address is found this method will throw this exception. Setting worksheet to null could be usefull for checking validity of formulas on workbook.</exception>
         </member>
         <member name="T:OfficeOpenXml.Utils.IArgument`1">
             <summary>
@@ -73786,14 +74809,19 @@
             Value of the argument
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.Utils.ImageUtil.PixelToPointConversion(System.Double,System.Double,System.Single)">
+        <member name="M:OfficeOpenXml.Utils.Image.ImageUtil.PixelToPointConversion(System.Double,System.Double,System.Single)">
             <summary>
-            Converts from pixels to points at a specified DPI (usually 72)
+            Converts from pixels to points at a specified DPI (usually 72 DPI)
             </summary>
             <param name="pixelValue"></param>
             <param name="standard_DPI"></param>
             <param name="resolution">Horizontal or Vertical Resolution</param>
             <returns></returns>
+        </member>
+        <member name="T:OfficeOpenXml.Utils.Memory.RollingBuffer">
+            <summary>
+            A buffer that rolls out memory as it's written to the buffer. 
+            </summary>
         </member>
         <member name="T:OfficeOpenXml.Utils.MemorySettings">
             <summary>
@@ -73823,19 +74851,19 @@
             </summary>
             <param name="recyclableMemoryStreamManager">The memory manager</param>
         </member>
-        <member name="M:OfficeOpenXml.Utils.RecyclableMemory.GetStream">
+        <member name="M:OfficeOpenXml.Utils.RecyclableMemory.GetStreamInternal">
             <summary>
             Get a new memory stream.
             </summary>
             <returns>A MemoryStream</returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.RecyclableMemory.GetStream(System.Byte[])">
+        <member name="M:OfficeOpenXml.Utils.RecyclableMemory.GetStreamInternal(System.Byte[])">
             <summary>
             Get a new memory stream initiated with a byte-array
             </summary>
             <returns>A MemoryStream</returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.RecyclableMemory.GetStream(System.Int32)">
+        <member name="M:OfficeOpenXml.Utils.RecyclableMemory.GetStreamInternal(System.Int32)">
             <summary>
             Get a new memory stream initiated with a byte-array
             </summary>
@@ -73855,7 +74883,7 @@
             <param name="argument">The argument to validate</param>
             <returns></returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.SecurityUtil.CreateSecureGuid">
+        <member name="M:OfficeOpenXml.Utils.Security.SecurityUtil.CreateSecureGuid">
             <summary>
             Create a cryptographically strong guid
             </summary>
@@ -73880,20 +74908,104 @@
             <param name="address">The address to transform</param>
             <returns>A valid excel address</returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.StreamUtil.CopyStream(System.IO.Stream,System.IO.Stream@)">
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.TryParseNumericString(System.String,System.Double@,System.Globalization.CultureInfo)">
             <summary>
-            Copies the input stream to the output stream.
+            Tries to parse a double from the specified <paramref name="candidateString"/> which is expected to be a string value.
             </summary>
-            <param name="inputStream">The input stream.</param>
-            <param name="outputStream">The output stream.</param>
+            <param name="candidateString">The string value.</param>
+            <param name="numericValue">The double value parsed from the specified <paramref name="candidateString"/>.</param>
+            <param name="cultureInfo">Other <see cref="T:System.Globalization.CultureInfo"/> than Current culture</param>
+            <returns>True if <paramref name="candidateString"/> could be parsed to a double; otherwise, false.</returns>        
         </member>
-        <member name="M:OfficeOpenXml.Utils.StreamUtil.CopyStreamAsync(System.IO.Stream,System.IO.Stream,System.Threading.CancellationToken)">
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.TryParseBooleanString(System.String,System.Boolean@)">
             <summary>
-            Copies the input stream to the output stream.
+            Tries to parse a boolean value from the specificed <paramref name="candidateString"/>.
             </summary>
-            <param name="inputStream">The input stream.</param>
-            <param name="outputStream">The output stream.</param>
-            <param name="cancellationToken">The cancellation token</param>
+            <param name="candidateString">The value to check for boolean-ness.</param>
+            <param name="result">The boolean value parsed from the specified <paramref name="candidateString"/>.</param>
+            <returns>True if <paramref name="candidateString"/> could be parsed </returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.TryParseIntString(System.String,System.Int32@)">
+            <summary>
+            Tries to parse an int value from the specificed <paramref name="candidateString"/>.
+            </summary>
+            <param name="candidateString">The value to check for boolean-ness.</param>
+            <param name="result">The boolean value parsed from the specified <paramref name="candidateString"/>.</param>
+            <returns>True if <paramref name="candidateString"/> could be parsed </returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.TryParseDateString(System.String,System.DateTime@)">
+            <summary>
+            Tries to parse a <see cref="T:System.DateTime"/> from the specified <paramref name="candidateString"/> which is expected to be a string value.
+            </summary>
+            <param name="candidateString">The string value.</param>
+            <param name="result">The double value parsed from the specified <paramref name="candidateString"/>.</param>
+            <returns>True if <paramref name="candidateString"/> could be parsed to a double; otherwise, false.</returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.GetValueDouble(System.Object,System.Boolean,System.Boolean)">
+            <summary>
+            Convert an object value to a double 
+            </summary>
+            <param name="v"></param>
+            <param name="ignoreBool"></param>
+            <param name="retNaN">Return NaN if invalid double otherwise 0</param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.ExcelEncodeString(System.IO.StreamWriter,System.String)">
+            <summary>
+            Return true if preserve space attribute is set.
+            </summary>
+            <param name="sw"></param>
+            <param name="t"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.ExcelEncodeString(System.Text.StringBuilder,System.String,System.Boolean)">
+            <summary>
+            Return true if preserve space attribute is set.
+            </summary>
+            <param name="sb"></param>
+            <param name="t"></param>
+            <param name="encodeTabLF"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.ExcelEncodeString(System.String,System.Boolean)">
+            <summary>
+            Return true if preserve space attribute is set.
+            </summary>
+            <param name="t"></param>
+            <param name="crLfEncode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.GetTypedCellValue``1(System.Object)">
+            <summary>
+                Convert cell value to desired type, including nullable structs.
+                When converting blank string to nullable struct (e.g. ' ' to int?) null is returned.
+                When attempted conversion fails exception is passed through.
+            </summary>
+            <typeparam name="T">
+                The type to convert to.
+            </typeparam>
+            <returns>
+                The <paramref name="value"/> converted to <typeparamref name="T"/>.
+            </returns>
+            <remarks>
+                If input is string, parsing is performed for output types of DateTime and TimeSpan, which if fails throws <see cref="T:System.FormatException"/>.
+                Another special case for output types of DateTime and TimeSpan is when input is double, in which case <see cref="M:System.DateTime.FromOADate(System.Double)"/>
+                is used for conversion. This special case does not work through other types convertible to double (e.g. integer or string with number).
+                In all other cases 'direct' conversion <see cref="M:System.Convert.ChangeType(System.Object,System.Type)"/> is performed.
+            </remarks>
+            <exception cref="T:System.FormatException">
+                <paramref name="value"/> is string and its format is invalid for conversion (parsing fails)
+            </exception>
+            <exception cref="T:System.InvalidCastException">
+                <paramref name="value"/> is not string and direct conversion fails
+            </exception>
+        </member>
+        <member name="M:OfficeOpenXml.Utils.TypeConversion.ConvertUtil.FromOADateExcel(System.Double)">
+            <summary>
+            Handles the issue with Excel having the incorrect values before 1900-03-01. Excel has 1900-02-29 as a valid value, but it does not exists in the calendar. Dates between 1900-02-28 and 1900-01-01 shuld be subtracted added 1 to the value. 0 in Excel is 1900-01-00 which is not valid in .NET. 
+            </summary>
+            <param name="d"></param>
+            <returns></returns>
         </member>
         <member name="T:OfficeOpenXml.Utils.TypeConversion.ReturnTypeWrapper`1">
             <summary>
@@ -73931,7 +75043,7 @@
             Returns true if the type to analyze equalse the <see cref="T:System.TimeSpan"/> type.
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.Utils.VBACompression.CompressPart(System.Byte[])">
+        <member name="M:OfficeOpenXml.Utils.VBA.VBACompression.CompressPart(System.Byte[])">
             <summary>
             Compression using a run length encoding algorithm.
             See MS-OVBA Section 2.4
@@ -73939,7 +75051,7 @@
             <param name="part">Byte array to decompress</param>
             <returns></returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.VBACompression.DecompressPart(System.Byte[],System.Int32)">
+        <member name="M:OfficeOpenXml.Utils.VBA.VBACompression.DecompressPart(System.Byte[],System.Int32)">
             <summary>
             Decompression using a run length encoding algorithm.
             See MS-OVBA Section 2.4
@@ -73948,7 +75060,7 @@
             <param name="startPos"></param>
             <returns></returns>
         </member>
-        <member name="M:OfficeOpenXml.Utils.XmlReaderHelper.ReadUntil(System.Xml.XmlReader,System.Xml.XmlNodeType,System.String[])">
+        <member name="M:OfficeOpenXml.Utils.XML.XmlReaderHelper.ReadUntil(System.Xml.XmlReader,System.Xml.XmlNodeType,System.String[])">
             <summary>
             Read file until a tag in tagName is found or EOF.
             This requires more careful consideration than when specifying depth.
@@ -74570,6 +75682,16 @@
             The V3 signature includes more coverage for data in the dir and project stream in the hash, not covered by the legacy and agile signatures.
             </summary>
         </member>
+        <member name="T:OfficeOpenXml.VBA.IExcelVBACollectionElement">
+            <summary>
+            The interface that must be implemented by the elements stored by ExcelVBACollectionBase.
+            </summary>
+        </member>
+        <member name="P:OfficeOpenXml.VBA.IExcelVBACollectionElement.Name">
+            <summary>
+            The name of a VBA module or reference.
+            </summary>
+        </member>
         <member name="M:OfficeOpenXml.WorksheetZipStream.FindElementPos(System.String,System.String,System.Boolean,System.Int32)">
             <summary>
             Returns the position in the xml document for an element. Either returns the position of the start element or the end element.
@@ -74823,11 +75945,6 @@
         <member name="F:RichValueDataType.Remove">
             <summary>
             If this value exists, remove the key/value pair
-            </summary>
-        </member>
-        <member name="T:EPPlusTest.Utils.RollingBuffer">
-            <summary>
-            A buffer that rolls out memory as it's written to the buffer. 
             </summary>
         </member>
     </members>

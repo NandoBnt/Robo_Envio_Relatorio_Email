@@ -194,22 +194,28 @@
         </member>
         <member name="P:MimeKit.MimeParser.MboxMarkerOffset">
             <summary>
-            Get the most recent mbox marker offset.
+            Get the mbox marker stream offset for the most recently parsed message.
             </summary>
             <remarks>
-            Gets the most recent mbox marker offset.
+            <para>Gets the mbox marker stream offset for the most recently parsed message.</para>
+            <para>If the <see cref="T:MimeKit.IMimeParser"/> was not initialized to parse the <see cref="F:MimeKit.MimeFormat.Mbox"/> format or if
+            the most recent call to <see cref="M:MimeKit.MimeParser.ParseMessage(System.Threading.CancellationToken)"/> or <see cref="M:MimeKit.MimeParser.ParseMessageAsync(System.Threading.CancellationToken)"/>
+            was not successful, then this property will return <c>-1</c>.</para>
             </remarks>
             <example>
             <code language="c#" source="Examples\MimeParserExamples.cs" region="ParseMbox" />
             </example>
-            <value>The mbox marker offset.</value>
+            <value>The mbox marker stream offset.</value>
         </member>
         <member name="P:MimeKit.MimeParser.MboxMarker">
             <summary>
-            Get the most recent mbox marker.
+            Get the mbox marker for the most recently parsed message.
             </summary>
             <remarks>
-            Gets the most recent mbox marker.
+            <para>Gets the mbox marker for the most recently parsed message.</para>
+            <para>If the <see cref="T:MimeKit.MimeParser"/> was not initialized to parse the <see cref="F:MimeKit.MimeFormat.Mbox"/> format or if
+            the most recent call to <see cref="M:MimeKit.MimeParser.ParseMessage(System.Threading.CancellationToken)"/> or <see cref="M:MimeKit.MimeParser.ParseMessageAsync(System.Threading.CancellationToken)"/>
+            was not successful, then this property will return <see langword="null"/>.</para>
             </remarks>
             <example>
             <code language="c#" source="Examples\MimeParserExamples.cs" region="ParseMbox" />
@@ -1521,7 +1527,6 @@
             <remarks>
             Reads a message from the stream.
             </remarks>
-            <returns>The parsed message.</returns>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.OperationCanceledException">
             The operation was canceled via the cancellation token.
@@ -2100,6 +2105,21 @@
             <code language="c#" source="Examples\BodyBuilder.cs" region="Complex" />
             </example>
             <value>The html body.</value>
+        </member>
+        <member name="P:MimeKit.BodyBuilder.BodyEncoding">
+            <summary>
+            Get or set the character encoding to be used for the message body.
+            </summary>
+            <remarks>
+            <para>Gets or sets the character encoding to be used for the body content.</para>
+            <para>The value specified for the <see cref="P:MimeKit.BodyBuilder.BodyEncoding"/> property sets the <c>charset</c>
+            parameter in the <c>Content-Type</c> headers for the <see cref="P:MimeKit.BodyBuilder.TextBody"/> and <see cref="P:MimeKit.BodyBuilder.HtmlBody"/>.
+            The default charset is "utf-8".</para>
+            </remarks>
+            <value>The character encoding.</value>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="value"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:MimeKit.BodyBuilder.ToMessageBody">
             <summary>
@@ -5860,7 +5880,7 @@
             Gets the public key algorithm for the certificate.
             </summary>
             <remarks>
-            Gets the public key algorithm for the ceretificate.
+            Gets the public key algorithm for the certificate.
             </remarks>
             <returns>The public key algorithm.</returns>
             <param name="certificate">The certificate.</param>
@@ -9597,6 +9617,99 @@
             <para><paramref name="domain"/> is <see langword="null"/>.</para>
             <para>-or-</para>
             <para><paramref name="selector"/> is <see langword="null"/>.</para>
+            </exception>
+        </member>
+        <member name="M:MimeKit.Cryptography.DkimSignerBase.#ctor(Org.BouncyCastle.Crypto.AsymmetricKeyParameter,System.String,System.String,MimeKit.Cryptography.DkimSignatureAlgorithm)">
+            <summary>
+            Initialize a new instance of the <see cref="T:MimeKit.Cryptography.DkimSignerBase"/> class.
+            </summary>
+            <remarks>
+            <para>Creates a new <see cref="T:MimeKit.Cryptography.DkimSignerBase"/>.</para>
+            <note type="security">Due to the recognized weakness of the SHA-1 hash algorithm
+            and the wide availability of the SHA-256 hash algorithm (it has been a required
+            part of DKIM since it was originally standardized in 2007), it is recommended
+            that <see cref="F:MimeKit.Cryptography.DkimSignatureAlgorithm.RsaSha1"/> NOT be used.</note>
+            </remarks>
+            <param name="key">The private key used for signing.</param>
+            <param name="domain">The domain that the signer represents.</param>
+            <param name="selector">The selector subdividing the domain.</param>
+            <param name="algorithm">The signature algorithm.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="key"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="domain"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="selector"/> is <see langword="null"/>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="key"/> is not a private key.
+            </exception>
+        </member>
+        <member name="M:MimeKit.Cryptography.DkimSignerBase.#ctor(System.String,System.String,System.String,MimeKit.Cryptography.DkimSignatureAlgorithm)">
+            <summary>
+            Initialize a new instance of the <see cref="T:MimeKit.Cryptography.DkimSignerBase"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MimeKit.Cryptography.DkimSignerBase"/>.
+            </remarks>
+            <param name="fileName">The file containing the private key.</param>
+            <param name="domain">The domain that the signer represents.</param>
+            <param name="selector">The selector subdividing the domain.</param>
+            <param name="algorithm">The signature algorithm.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="fileName"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="domain"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="selector"/> is <see langword="null"/>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="fileName"/> is a zero-length string, contains only white space, or
+            contains one or more invalid characters.
+            </exception>
+            <exception cref="T:System.FormatException">
+            The file did not contain a private key.
+            </exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">
+            <paramref name="fileName"/> is an invalid file path.
+            </exception>
+            <exception cref="T:System.IO.FileNotFoundException">
+            The specified file path could not be found.
+            </exception>
+            <exception cref="T:System.UnauthorizedAccessException">
+            The user does not have access to read the specified file.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+        </member>
+        <member name="M:MimeKit.Cryptography.DkimSignerBase.#ctor(System.IO.Stream,System.String,System.String,MimeKit.Cryptography.DkimSignatureAlgorithm)">
+            <summary>
+            Initialize a new instance of the <see cref="T:MimeKit.Cryptography.DkimSignerBase"/> class.
+            </summary>
+            <remarks>
+            <para>Creates a new <see cref="T:MimeKit.Cryptography.DkimSignerBase"/>.</para>
+            <note type="security">Due to the recognized weakness of the SHA-1 hash algorithm
+            and the wide availability of the SHA-256 hash algorithm (it has been a required
+            part of DKIM since it was originally standardized in 2007), it is recommended
+            that <see cref="F:MimeKit.Cryptography.DkimSignatureAlgorithm.RsaSha1"/> NOT be used.</note>
+            </remarks>
+            <param name="stream">The stream containing the private key.</param>
+            <param name="domain">The domain that the signer represents.</param>
+            <param name="selector">The selector subdividing the domain.</param>
+            <param name="algorithm">The signature algorithm.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="stream"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="domain"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="selector"/> is <see langword="null"/>.</para>
+            </exception>
+            <exception cref="T:System.FormatException">
+            The file did not contain a private key.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
             </exception>
         </member>
         <member name="P:MimeKit.Cryptography.DkimSignerBase.Domain">
@@ -17240,10 +17353,10 @@
         </member>
         <member name="F:MimeKit.Cryptography.RsaSignaturePadding.Pss">
             <summary>
-            The Probibilistic Signature Scheme (PSS) padding.
+            The Probabilistic Signature Scheme (PSS) padding.
             </summary>
             <remarks>
-            The Probibilistic Signature Scheme (PSS) padding.
+            The Probabilistic Signature Scheme (PSS) padding.
             </remarks>
         </member>
         <member name="P:MimeKit.Cryptography.RsaSignaturePadding.Scheme">
@@ -17335,7 +17448,7 @@
         </member>
         <member name="F:MimeKit.Cryptography.RsaSignaturePaddingScheme.Pss">
             <summary>
-            The Probibilistic Signature Scheme (PSS).
+            The Probabilistic Signature Scheme (PSS).
             </summary>
         </member>
         <member name="T:MimeKit.Cryptography.SecureMailboxAddress">
@@ -22739,19 +22852,6 @@
             intact when sent via 7bit transports such as SMTP.
             </remarks>
         </member>
-        <member name="M:MimeKit.Encodings.Base64Encoder.#ctor(System.Boolean,System.Int32)">
-            <summary>
-            Initialize a new instance of the <see cref="T:MimeKit.Encodings.Base64Encoder"/> class.
-            </summary>
-            <remarks>
-            Creates a new base64 encoder.
-            </remarks>
-            <param name="rfc2047"><see langword="true" /> if this encoder will be used to encode rfc2047 encoded-word payloads; otherwise, <see langword="false" />.</param>
-            <param name="maxLineLength">The maximum number of octets allowed per line (not counting the CRLF). Must be between <c>60</c> and <c>998</c> (inclusive).</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">
-            <paramref name="maxLineLength"/> is not between <c>60</c> and <c>998</c> (inclusive).
-            </exception>
-        </member>
         <member name="M:MimeKit.Encodings.Base64Encoder.#ctor(System.Int32)">
             <summary>
             Initialize a new instance of the <see cref="T:MimeKit.Encodings.Base64Encoder"/> class.
@@ -22827,7 +22927,7 @@
             Encode the specified input into the output buffer, flushing any internal buffer state as well.
             </summary>
             <remarks>
-            <para>Encodes the specified input into the output buffer, flusing any internal state as well.</para>
+            <para>Encodes the specified input into the output buffer, flushing any internal state as well.</para>
             <para>The output buffer should be large enough to hold all the
             encoded input. For estimating the size needed for the output buffer,
             see <see cref="M:MimeKit.Encodings.Base64Encoder.EstimateOutputLength(System.Int32)"/>.</para>
@@ -23038,7 +23138,7 @@
             Encode the specified input into the output buffer, flushing any internal buffer state as well.
             </summary>
             <remarks>
-            <para>Encodes the specified input into the output buffer, flusing any internal state as well.</para>
+            <para>Encodes the specified input into the output buffer, flushing any internal state as well.</para>
             <para>The output buffer should be large enough to hold all the
             encoded input. For estimating the size needed for the output buffer,
             see <see cref="M:MimeKit.Encodings.HexEncoder.EstimateOutputLength(System.Int32)"/>.</para>
@@ -23231,7 +23331,7 @@
             Encode the specified input into the output buffer, flushing any internal buffer state as well.
             </summary>
             <remarks>
-            <para>Encodes the specified input into the output buffer, flusing any internal state as well.</para>
+            <para>Encodes the specified input into the output buffer, flushing any internal state as well.</para>
             <para>The output buffer should be large enough to hold all the
             encoded input. For estimating the size needed for the output buffer,
             see <see cref="M:MimeKit.Encodings.IMimeEncoder.EstimateOutputLength(System.Int32)"/>.</para>
@@ -23352,6 +23452,68 @@
             at the position specified by <paramref name="index"/> in the <paramref name="domain"/>
             string.</param>
             <returns>The Unicode domain name.</returns>
+        </member>
+        <member name="T:MimeKit.Encodings.IRfc2047Encoder">
+            <summary>
+            An interface for encoding word tokens according to RFC 2047.
+            </summary>
+            <remarks>
+            <para>Rfc2047 encoded-word tokens support two methods of encoding: base64 and quoted-printable.
+            These encoding methods are represented by <c>b</c> (or <c>B</c>) and <c>q</c> (or <c>Q</c>),
+            respectively.</para>
+            </remarks>
+        </member>
+        <member name="P:MimeKit.Encodings.IRfc2047Encoder.Encoding">
+            <summary>
+            Get the rfc2047 encoding method.
+            </summary>
+            <remarks>
+            <para>Gets the rfc2047 encoding method.</para>
+            <para>Rfc2047 encoded-word tokens support two methods of encoding: base64 and quoted-printable.
+            These encoding methods are represented by <c>b</c> (or <c>B</c>) and <c>q</c> (or <c>Q</c>),
+            respectively.</para>
+            </remarks>
+            <value>The character representing the rfc2047 encoding.</value>
+        </member>
+        <member name="M:MimeKit.Encodings.IRfc2047Encoder.EstimateOutputLength(System.Int32)">
+            <summary>
+            Estimate the length of the output.
+            </summary>
+            <remarks>
+            Estimates the number of bytes needed to encode the specified number of input bytes.
+            </remarks>
+            <returns>The estimated output length.</returns>
+            <param name="inputLength">The input length.</param>
+        </member>
+        <member name="M:MimeKit.Encodings.IRfc2047Encoder.Encode(System.Byte[],System.Int32,System.Int32,System.Byte[])">
+            <summary>
+            Encode the specified input into the output buffer.
+            </summary>
+            <remarks>
+            <para>Encodes the specified input into the output buffer.</para>
+            <para>The output buffer should be large enough to hold all the
+            encoded input. For estimating the size needed for the output buffer,
+            see <see cref="M:MimeKit.Encodings.IRfc2047Encoder.EstimateOutputLength(System.Int32)"/>.</para>
+            </remarks>
+            <returns>The number of bytes written to the output buffer.</returns>
+            <param name="input">The input buffer.</param>
+            <param name="startIndex">The starting index of the input buffer.</param>
+            <param name="length">The length of the input buffer.</param>
+            <param name="output">The output buffer.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="input"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="output"/> is <see langword="null"/>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            <paramref name="startIndex"/> and <paramref name="length"/> do not specify
+            a valid range in the <paramref name="input"/> byte array.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <para><paramref name="output"/> is not large enough to contain the encoded content.</para>
+            <para>Use the <see cref="M:MimeKit.Encodings.IRfc2047Encoder.EstimateOutputLength(System.Int32)"/> method to properly determine the 
+            necessary length of the <paramref name="output"/> byte array.</para>
+            </exception>
         </member>
         <member name="T:MimeKit.Encodings.PassThroughDecoder">
             <summary>
@@ -23762,7 +23924,7 @@
             Encode the specified input into the output buffer, flushing any internal buffer state as well.
             </summary>
             <remarks>
-            <para>Encodes the specified input into the output buffer, flusing any internal state as well.</para>
+            <para>Encodes the specified input into the output buffer, flushing any internal state as well.</para>
             <para>The output buffer should be large enough to hold all the
             encoded input. For estimating the size needed for the output buffer,
             see <see cref="M:MimeKit.Encodings.QEncoder.EstimateOutputLength(System.Int32)"/>.</para>
@@ -24021,6 +24183,148 @@
             Resets the state of the encoder.
             </remarks>
         </member>
+        <member name="T:MimeKit.Encodings.Rfc2047Base64Encoder">
+            <summary>
+            A base64 encoder that is specifically meant to be used for rfc2047 encoded-word tokens.
+            </summary>
+            <remarks>
+            The rfc2047 "B" encoding is an encoding often used in MIME to encode textual content outside
+            the ASCII range within an rfc2047 encoded-word token in order to ensure that the text remains
+            intact when sent via 7bit transports such as SMTP.
+            </remarks>
+        </member>
+        <member name="M:MimeKit.Encodings.Rfc2047Base64Encoder.#ctor">
+            <summary>
+            Initialize a new instance of the <see cref="T:MimeKit.Encodings.Rfc2047Base64Encoder"/> class.
+            </summary>
+            <remarks>
+            Creates a new rfc2047 base64 encoder.
+            </remarks>
+        </member>
+        <member name="P:MimeKit.Encodings.Rfc2047Base64Encoder.Encoding">
+            <summary>
+            Get the rfc2047 encoding method.
+            </summary>
+            <remarks>
+            <para>Gets the rfc2047 encoding method.</para>
+            <para>Rfc2047 encoded-word tokens support two methods of encoding: base64 and quoted-printable.
+            These encoding methods are represented by <c>b</c> (or <c>B</c>) and <c>q</c> (or <c>Q</c>),
+            respectively.</para>
+            </remarks>
+            <value>The character representing the rfc2047 encoding.</value>
+        </member>
+        <member name="M:MimeKit.Encodings.Rfc2047Base64Encoder.EstimateOutputLength(System.Int32)">
+            <summary>
+            Estimate the length of the output.
+            </summary>
+            <remarks>
+            Estimates the number of bytes needed to encode the specified number of input bytes.
+            </remarks>
+            <returns>The estimated output length.</returns>
+            <param name="inputLength">The input length.</param>
+        </member>
+        <member name="M:MimeKit.Encodings.Rfc2047Base64Encoder.Encode(System.Byte[],System.Int32,System.Int32,System.Byte[])">
+            <summary>
+            Encode the specified input into the output buffer.
+            </summary>
+            <remarks>
+            <para>Encodes the specified input into the output buffer.</para>
+            <para>The output buffer should be large enough to hold all the
+            encoded input. For estimating the size needed for the output buffer,
+            see <see cref="M:MimeKit.Encodings.Rfc2047Base64Encoder.EstimateOutputLength(System.Int32)"/>.</para>
+            </remarks>
+            <returns>The number of bytes written to the output buffer.</returns>
+            <param name="input">The input buffer.</param>
+            <param name="startIndex">The starting index of the input buffer.</param>
+            <param name="length">The length of the input buffer.</param>
+            <param name="output">The output buffer.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="input"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="output"/> is <see langword="null"/>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            <paramref name="startIndex"/> and <paramref name="length"/> do not specify
+            a valid range in the <paramref name="input"/> byte array.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <para><paramref name="output"/> is not large enough to contain the encoded content.</para>
+            <para>Use the <see cref="M:MimeKit.Encodings.Rfc2047Base64Encoder.EstimateOutputLength(System.Int32)"/> method to properly determine the 
+            necessary length of the <paramref name="output"/> byte array.</para>
+            </exception>
+        </member>
+        <member name="T:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder">
+            <summary>
+            Encodes content using a variation of the quoted-printable encoding
+            that is specifically meant to be used for rfc2047 encoded-word tokens.
+            </summary>
+            <remarks>
+            The rfc2047 "Q" encoding is an encoding often used in MIME to encode textual content
+            outside the ASCII range within an rfc2047 encoded-word token in order to ensure that
+            the text remains intact when sent via 7bit transports such as SMTP.
+            </remarks>
+        </member>
+        <member name="M:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder.#ctor(MimeKit.Encodings.QEncodeMode)">
+            <summary>
+            Initialize a new instance of the <see cref="T:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder"/> class.
+            </summary>
+            <remarks>
+            Creates a new rfc2047 quoted-printable encoder.
+            </remarks>
+            <param name="mode">The rfc2047 encoding mode.</param>
+        </member>
+        <member name="P:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder.Encoding">
+            <summary>
+            Get the rfc2047 encoding method.
+            </summary>
+            <remarks>
+            <para>Gets the rfc2047 encoding method.</para>
+            <para>Rfc2047 encoded-word tokens support two methods of encoding: base64 and quoted-printable.
+            These encoding methods are represented by <c>b</c> (or <c>B</c>) and <c>q</c> (or <c>Q</c>),
+            respectively.</para>
+            </remarks>
+            <value>The character representing the rfc2047 encoding.</value>
+        </member>
+        <member name="M:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder.EstimateOutputLength(System.Int32)">
+            <summary>
+            Estimate the length of the output.
+            </summary>
+            <remarks>
+            Estimates the number of bytes needed to encode the specified number of input bytes.
+            </remarks>
+            <returns>The estimated output length.</returns>
+            <param name="inputLength">The input length.</param>
+        </member>
+        <member name="M:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder.Encode(System.Byte[],System.Int32,System.Int32,System.Byte[])">
+            <summary>
+            Encode the specified input into the output buffer.
+            </summary>
+            <remarks>
+            <para>Encodes the specified input into the output buffer.</para>
+            <para>The output buffer should be large enough to hold all the
+            encoded input. For estimating the size needed for the output buffer,
+            see <see cref="M:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder.EstimateOutputLength(System.Int32)"/>.</para>
+            </remarks>
+            <returns>The number of bytes written to the output buffer.</returns>
+            <param name="input">The input buffer.</param>
+            <param name="startIndex">The starting index of the input buffer.</param>
+            <param name="length">The length of the input buffer.</param>
+            <param name="output">The output buffer.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="input"/> is <see langword="null"/>.</para>
+            <para>-or-</para>
+            <para><paramref name="output"/> is <see langword="null"/>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            <paramref name="startIndex"/> and <paramref name="length"/> do not specify
+            a valid range in the <paramref name="input"/> byte array.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <para><paramref name="output"/> is not large enough to contain the encoded content.</para>
+            <para>Use the <see cref="M:MimeKit.Encodings.Rfc2047QuotedPrintableEncoder.EstimateOutputLength(System.Int32)"/> method to properly determine the 
+            necessary length of the <paramref name="output"/> byte array.</para>
+            </exception>
+        </member>
         <member name="T:MimeKit.Encodings.UUDecoder">
             <summary>
             Incrementally decodes content encoded with the Unix-to-Unix encoding.
@@ -24216,7 +24520,7 @@
             Encode the specified input into the output buffer, flushing any internal buffer state as well.
             </summary>
             <remarks>
-            <para>Encodes the specified input into the output buffer, flusing any internal state as well.</para>
+            <para>Encodes the specified input into the output buffer, flushing any internal state as well.</para>
             <para>The output buffer should be large enough to hold all the
             encoded input. For estimating the size needed for the output buffer,
             see <see cref="M:MimeKit.Encodings.UUEncoder.EstimateOutputLength(System.Int32)"/>.</para>
@@ -24593,20 +24897,32 @@
         </member>
         <member name="P:MimeKit.ExperimentalMimeParser.MboxMarkerOffset">
             <summary>
-            Gets the most recent mbox marker offset.
+            Get the mbox marker stream offset for the most recently parsed message.
             </summary>
             <remarks>
-            Gets the most recent mbox marker offset.
+            <para>Gets the mbox marker stream offset for the most recently parsed message.</para>
+            <para>If the <see cref="T:MimeKit.IMimeParser"/> was not initialized to parse the <see cref="F:MimeKit.MimeFormat.Mbox"/> format or if
+            the most recent call to <see cref="M:MimeKit.ExperimentalMimeParser.ParseMessage(System.Threading.CancellationToken)"/> or <see cref="M:MimeKit.ExperimentalMimeParser.ParseMessageAsync(System.Threading.CancellationToken)"/>
+            was not successful, then this property will return <c>-1</c>.</para>
             </remarks>
-            <value>The mbox marker offset.</value>
+            <example>
+            <code language="c#" source="Examples\MimeParserExamples.cs" region="ParseMbox" />
+            </example>
+            <value>The mbox marker stream offset.</value>
         </member>
         <member name="P:MimeKit.ExperimentalMimeParser.MboxMarker">
             <summary>
-            Gets the most recent mbox marker.
+            Get the mbox marker for the most recently parsed message.
             </summary>
             <remarks>
-            Gets the most recent mbox marker.
+            <para>Gets the mbox marker for the most recently parsed message.</para>
+            <para>If the <see cref="T:MimeKit.ExperimentalMimeParser"/> was not initialized to parse the <see cref="F:MimeKit.MimeFormat.Mbox"/> format or if
+            the most recent call to <see cref="M:MimeKit.ExperimentalMimeParser.ParseMessage(System.Threading.CancellationToken)"/> or <see cref="M:MimeKit.ExperimentalMimeParser.ParseMessageAsync(System.Threading.CancellationToken)"/>
+            was not successful, then this property will return <see langword="null"/>.</para>
             </remarks>
+            <example>
+            <code language="c#" source="Examples\MimeParserExamples.cs" region="ParseMbox" />
+            </example>
             <value>The mbox marker.</value>
         </member>
         <member name="M:MimeKit.ExperimentalMimeParser.SetStream(System.IO.Stream,MimeKit.MimeFormat,System.Boolean)">
@@ -29669,20 +29985,32 @@
         </member>
         <member name="P:MimeKit.IMimeParser.MboxMarkerOffset">
             <summary>
-            Gets the most recent mbox marker offset.
+            Get the mbox marker stream offset for the most recently parsed message.
             </summary>
             <remarks>
-            Gets the most recent mbox marker offset.
+            <para>Gets the mbox marker stream offset for the most recently parsed message.</para>
+            <para>If the <see cref="T:MimeKit.IMimeParser"/> was not initialized to parse the <see cref="F:MimeKit.MimeFormat.Mbox"/> format or if
+            the most recent call to <see cref="M:MimeKit.IMimeParser.ParseMessage(System.Threading.CancellationToken)"/> or <see cref="M:MimeKit.IMimeParser.ParseMessageAsync(System.Threading.CancellationToken)"/>
+            was not successful, then this property will return <c>-1</c>.</para>
             </remarks>
-            <value>The mbox marker offset.</value>
+            <example>
+            <code language="c#" source="Examples\MimeParserExamples.cs" region="ParseMbox" />
+            </example>
+            <value>The mbox marker stream offset.</value>
         </member>
         <member name="P:MimeKit.IMimeParser.MboxMarker">
             <summary>
-            Gets the most recent mbox marker.
+            Get the mbox marker for the most recently parsed message.
             </summary>
             <remarks>
-            Gets the most recent mbox marker.
+            <para>Gets the mbox marker for the most recently parsed message.</para>
+            <para>If the <see cref="T:MimeKit.IMimeParser"/> was not initialized to parse the <see cref="F:MimeKit.MimeFormat.Mbox"/> format or if
+            the most recent call to <see cref="M:MimeKit.IMimeParser.ParseMessage(System.Threading.CancellationToken)"/> or <see cref="M:MimeKit.IMimeParser.ParseMessageAsync(System.Threading.CancellationToken)"/>
+            was not successful, then this property will return <see langword="null"/>.</para>
             </remarks>
+            <example>
+            <code language="c#" source="Examples\MimeParserExamples.cs" region="ParseMbox" />
+            </example>
             <value>The mbox marker.</value>
         </member>
         <member name="M:MimeKit.IMimeParser.SetStream(System.IO.Stream,MimeKit.MimeFormat,System.Boolean)">
@@ -32290,7 +32618,8 @@
             Initialize a new instance of the <see cref="T:MimeKit.IO.FilteredStream"/> class.
             </summary>
             <remarks>
-            Creates a filtered stream using the specified source stream.
+            <para>Creates a filtered stream using the specified source stream.</para>
+            <para>The source stream will be left open when this <see cref="T:MimeKit.IO.FilteredStream"/> is disposed.</para>
             </remarks>
             <param name="source">The underlying stream to filter.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -32785,10 +33114,13 @@
             Quoted-Printable encoding.
             </summary>
             <remarks>
-            <para>From-armoring is a workaround to prevent receiving clients and/or servers
-            that use the mbox file format for local storage from munging every line of the
-            message content beginning with "From " by prepending a ">" to each of those lines,
-            as is typical with software using the mbox format.</para>
+            <para>From-armoring serves a similar purpose as the <see cref="T:MimeKit.IO.Filters.MboxFromFilter"/>, but uses
+            quoted-printable encoding to replace lines beginning with "From " using "=46rom " instead
+            of replacing those lines with ">From " (which is irreversable). From-armoring is a better
+            alternative to using the <see cref="T:MimeKit.IO.Filters.MboxFromFilter"/>, but also requires the
+            <see cref="P:MimeKit.MimePart.ContentTransferEncoding"/> property of the <see cref="T:MimeKit.MimePart"/>
+            containing the content modified by this filter to be set to
+            <see cref="F:MimeKit.ContentEncoding.QuotedPrintable"/> in order to work properly.</para>
             <para>This armoring technique ensures that the receiving client will still
             be able to verify PGP/MIME and S/MIME signatures.</para>
             </remarks>
@@ -35809,6 +36141,26 @@
             <remarks>
             Allows you to anonymize a <see cref="T:MimeKit.MimeMessage"/> or <see cref="T:MimeKit.MimeEntity"/>.
             </remarks>
+        </member>
+        <member name="M:MimeKit.MimeAnonymizer.#ctor">
+            <summary>
+            Initialize a new instance of the <see cref="T:MimeKit.MimeAnonymizer"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MimeKit.MimeAnonymizer"/>.
+            </remarks>
+        </member>
+        <member name="P:MimeKit.MimeAnonymizer.PreserveHeaders">
+            <summary>
+            Get the set of headers that this anonymizer is configured to preserve.
+            </summary>
+            <remarks>
+            <para>Gets the set of headers that this anonymizer is configured to preserve.</para>
+            <para>Headers can be added or removed from this set in order to influence the output of the anonymizer.</para>
+            <note type="note">This set of headers to preserve also applies to the status headers in the content of
+            message/delivery-status parts as well.</note>
+            </remarks>
+            <value>The set of headers that the anonymizer is configured to preserve.</value>
         </member>
         <member name="M:MimeKit.MimeAnonymizer.Anonymize(MimeKit.MimeMessage,System.IO.Stream)">
             <summary>
@@ -55204,6 +55556,22 @@
             The MAPI property PR_PUID.
             </remarks>
         </member>
+        <member name="F:MimeKit.Tnef.TnefPropertyTag.PuidA">
+            <summary>
+            The MAPI property PR_PUID_A.
+            </summary>
+            <remarks>
+            The MAPI property PR_PUID_A.
+            </remarks>
+        </member>
+        <member name="F:MimeKit.Tnef.TnefPropertyTag.PuidW">
+            <summary>
+            The MAPI property PR_PUID_W.
+            </summary>
+            <remarks>
+            The MAPI property PR_PUID_W.
+            </remarks>
+        </member>
         <member name="F:MimeKit.Tnef.TnefPropertyTag.RadioTelephoneNumberA">
             <summary>
             The MAPI property PR_RADIO_TELEPHONE_NUMBER.
@@ -56691,10 +57059,10 @@
         </member>
         <member name="M:MimeKit.Tnef.TnefPropertyTag.ToUnicode">
             <summary>
-            Return a new <see cref="T:MimeKit.Tnef.TnefPropertyTag"/> where the type has been changed to <see cref="F:MimeKit.Tnef.TnefPropertyType.Unicode"/>.
+            Return a new <see cref="T:MimeKit.Tnef.TnefPropertyTag"/> where <see cref="F:MimeKit.Tnef.TnefPropertyType.String8"/> has been changed to <see cref="F:MimeKit.Tnef.TnefPropertyType.Unicode"/>.
             </summary>
             <remarks>
-            Returns a new <see cref="T:MimeKit.Tnef.TnefPropertyTag"/> where the type has been changed to <see cref="F:MimeKit.Tnef.TnefPropertyType.Unicode"/>.
+            Returns a new <see cref="T:MimeKit.Tnef.TnefPropertyTag"/> where <see cref="F:MimeKit.Tnef.TnefPropertyType.String8"/> has been changed to <see cref="F:MimeKit.Tnef.TnefPropertyType.Unicode"/>.
             </remarks>
             <returns>The unicode equivalent of the property tag.</returns>
         </member>

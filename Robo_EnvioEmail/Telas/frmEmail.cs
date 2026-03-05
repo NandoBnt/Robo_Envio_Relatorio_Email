@@ -127,7 +127,7 @@ namespace Robo_EnvioEmail
             if (settings["HabilitaTrace"] != null)
                 bTrace = ConfigurationManager.AppSettings["HabilitaTrace"].ToString().Equals("S");
 
-            if(txtIntervalo.Text == string.Empty)
+            if (txtIntervalo.Text == string.Empty)
             {
                 MessageBox.Show("Necessário informar o intervalo em minutos do envio de EDI.", "Email", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -303,7 +303,7 @@ namespace Robo_EnvioEmail
 
                     sQuery = "Select rTrim(Cia.ds_Pessoa) as Cia_Aerea, fechto.nr_AWB as AWB, Ag.ds_Pessoa as Agente_Entrega," +
                             " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe, 'CTe' + Convert(varchar, mov.id_Movimento) + '_Auto.xml' as Arquivo," +
-                            " Mov.dt_ImpressaoConhecimento as Emissao, rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
+                            " Mov.dt_ImpressaoConhecimento as Emissao, Mov.dt_PrazoEntrega as Prazo, rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                             " rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, rTrim(estdest.cd_Estado) UF_Destinatario, " +
                             " mov.vl_NotaFiscal Valor_NF, mov.qt_Volume as Volume, mov.kg_Mercadoria as Peso" +
                             " From tbdFechamentoCiaAerea fechto (Nolock)" +
@@ -355,7 +355,7 @@ namespace Robo_EnvioEmail
 
                             sArquivoGerado = ""; sPDFGerado = ""; listaXML = "";
 
-                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "M", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
 
                             // Arquivo PDF do Relatório
                             sPDFGerado = objRelatorio.ExportarExcelParaPDF(sArquivoGerado, sArquivoGerado.Replace("xlsx", "pdf"));
@@ -596,23 +596,31 @@ namespace Robo_EnvioEmail
                                         " Inner join tbdOcorrenciaNota ocoNF (Nolock) on v.id_OcorrenciaNota = ocoNF.id_OcorrenciaNota" +
                                         " Inner join tbdOcorrenciaCliente OcoCli on OcoNF.id_Ocorrencia = OcoCli.id_Ocorrencia And Mov.id_ClienteFaturamento = OcoCli.id_Pessoa " +
                                         " Inner join tbdPessoa fat (Nolock) on mov.id_ClienteFaturamento = fat.id_Pessoa" +
+                                        " Left  join tbdConfiguracaoCliente config (Nolock) on fat.id_Pessoa = config.id_Pessoa" +
                                         " Inner join tbdPessoa rem (Nolock) on mov.id_Remetente = rem.id_Pessoa" +
                                         " Inner join tbdCidade cidrem (Nolock) on mov.id_CidadeOrigem = cidrem.id_Cidade" +
                                         " Inner join tbdEstado estrem (Nolock) on cidrem.id_Estado = estrem.id_Estado" +
                                         " Inner join tbdCidade ciddest (Nolock) on mov.id_Cidade = ciddest.id_Cidade" +
                                         " Inner join tbdEstado estdest (Nolock) on ciddest.id_Estado = estdest.id_Estado" +
                                         " Left  join tbdParametrizacaoPrazoOcorrencia param (Nolock) on ocoNF.id_Ocorrencia = param.id_Ocorrencia" +
-                                        " Where id_ClienteFaturamento = {0} And ocoNF.dt_PrazoFechamento >= '{1}'" +
+                                        " Where {0} And ocoNF.dt_PrazoFechamento >= '{1}'" +
                                         " And Isnull(param.tp_NaoEnviarRelatorio, '') <> 'S'" +
                                         "   And Mov.dt_Recepcao is null" +
                                         " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
+
+                #region Emails enviados por grupo de cliente
+
                 sSQL.Clear();
 
                 sSQL.Append("Select").Append(Environment.NewLine);
-                sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                sSQL.Append("Distinct d.ds_GrupoCliente as ds_Pessoa, d.id_GrupoCliente as id_Cliente, Max(a.ds_EmailDestino) as ds_EmailDestino, ").Append(Environment.NewLine);
+                sSQL.Append("Max(a.ds_AssuntoEmail) as ds_AssuntoEmail, Max(a.ds_CorpoEmail) as ds_CorpoEmail").Append(Environment.NewLine);
                 sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
                 sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
-                sSQL.Append("Where a.tp_RelatorioFollowUp = 'S'");
+                sSQL.Append("Inner join tbdConfiguracaoCliente c (Nolock) on b.id_Pessoa = c.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdGrupoCliente d (Nolock) on c.id_GrupoCliente = d.id_GrupoCliente").Append(Environment.NewLine);
+                sSQL.Append("Where a.tp_RelatorioFollowup = 'S'").Append(Environment.NewLine);
+                sSQL.Append("Group by d.ds_GrupoCliente, d.id_GrupoCliente");
 
                 if (bTrace)
                     Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
@@ -631,7 +639,7 @@ namespace Robo_EnvioEmail
                         if (bTrace)
                             Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
 
-                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "config.id_GrupoCliente = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
                         if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
                         {
@@ -661,10 +669,74 @@ namespace Robo_EnvioEmail
                             this.Refresh();
                         }
                     }
+                }
 
-                    txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                #endregion
+
+                #region Emails enviados - Clientes sem grupo
+
+                sSQL.Clear();
+
+                sSQL.Append("Select").Append(Environment.NewLine);
+                sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdConfiguracaoCliente c (Nolock) on b.id_Pessoa = c.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Where a.tp_RelatorioFollowup = 'S' And c.id_GrupoCliente is null");
+
+                if (bTrace)
+                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+
+                dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
+
+                if (dt == null || dt.Rows.Count == 0)
+                {
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Nenhum cliente cadastrado para envio de relatório." + Environment.NewLine;
                     this.Refresh();
                 }
+                else
+                {
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        if (bTrace)
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+
+                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "mov.id_ClienteFaturamento = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+
+                        if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
+                            this.Refresh();
+                            continue;
+                        }
+
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "O", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_FollowUp");
+
+                        sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                            dr["ds_EmailDestino"].ToString(),
+                            "",
+                            dr["ds_AssuntoEmail"].ToString(),
+                            dr["ds_CorpoEmail"].ToString(),
+                            sArquivoGerado
+                            );
+
+                        if (sStatusEnvio.ToUpper() == "OK")
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + dr["ds_EmailDestino"] + Environment.NewLine;
+                            this.Refresh();
+                        }
+                        else
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email: " + sStatusEnvio + Environment.NewLine;
+                            this.Refresh();
+                        }
+                    }
+                }
+
+                #endregion
+
+                txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                this.Refresh();
             }
             catch (Exception ex)
             {
@@ -706,34 +778,52 @@ namespace Robo_EnvioEmail
                 this.Refresh();
 
 
-                sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega) as Prazo_Entrega, movNF.cd_notaFiscal as NF," +
+                sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega) as Previsao_Entrega, movNF.cd_notaFiscal as NF," +
                         " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
                         " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                         " rTrim(fat.ds_Pessoa) as Faturado, rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, " +
                         " rTrim(estdest.cd_Estado) UF_Destinatario, " +
+                        " rTrim(OcoCli.ds_OcorrenciaCliente) as Ultima_Ocorrencia, ocoNF.dt_PrazoFechamento as Data, ocoNF.hr_PrazoFechamento as Hora, " +
+                        " rTrim(ocoNF.ds_Ocorrencia) as Complemento, " +
+                        " Case When mov.dt_Recepcao is not null Then " +
+                        "   Case When Datediff(d, mov.dt_Recepcao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega)) >= 0 Then 'Dentro do Prazo' Else 'Fora do Prazo' End " +
+                        " Else " +
+                        "   Case When Datediff(d, Convert(datetime, (Convert(varchar, Getdate(), 102))), Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega)) >= 0 Then 'Dentro do Prazo' Else 'Fora do Prazo' End " +
+                        " End as Performance, " +
                         " movNF.vl_NotaFiscal Valor_NF, movNF.qt_Volume as Volume," +
                         " movNF.kg_Mercadoria as Peso, mov.vl_Frete Valor_Frete" +
                         " From tbdMovimento mov (Nolock)" +
                         " Inner join tbdExtraGrupoTipoMovimentoItem grupoTipo (Nolock) on mov.id_TipoMovimento = grupoTipo.id_TipoMovimento And grupoTipo.id_GrupoTipoMovimento = 2" +
                         " Inner join tbdMovimentoNotaFiscal MovNF (Nolock) on MovNF.id_Movimento = mov.id_Movimento" +
+                        " Inner join v_DadosMovimento v (Nolock) on MovNF.id_Movimento = v.id_Movimento And MovNF.cd_NotaFiscal = v.cd_NotaFiscal" +
+                        " Inner join tbdOcorrenciaNota ocoNF (Nolock) on v.id_OcorrenciaNota = ocoNF.id_OcorrenciaNota" +
+                        " Inner join tbdOcorrenciaCliente OcoCli on OcoNF.id_Ocorrencia = OcoCli.id_Ocorrencia And Mov.id_ClienteFaturamento = OcoCli.id_Pessoa " +
                         " Left  join tbd_Site_MovimentoAgendamento Agend (Nolock) on MovNF.id_Movimento = Agend.id_Movimento And MovNF.cd_NotaFiscal = Agend.cd_NotaFiscal" +
                         " Inner join tbdPessoa fat (Nolock) on mov.id_ClienteFaturamento = fat.id_Pessoa" +
+                        " Left  join tbdConfiguracaoCliente config (Nolock) on fat.id_Pessoa = config.id_Pessoa" +
                         " Inner join tbdPessoa rem (Nolock) on mov.id_Remetente = rem.id_Pessoa" +
                         " Inner join tbdCidade cidrem (Nolock) on mov.id_CidadeOrigem = cidrem.id_Cidade" +
                         " Inner join tbdEstado estrem (Nolock) on cidrem.id_Estado = estrem.id_Estado" +
                         " Inner join tbdCidade ciddest (Nolock) on mov.id_Cidade = ciddest.id_Cidade" +
                         " Inner join tbdEstado estdest (Nolock) on ciddest.id_Estado = estdest.id_Estado" +
-                        " Where id_ClienteFaturamento = {0} And mov.dt_ImpressaoConhecimento >= '{1}'" +
+                        " Where {0} And mov.dt_ImpressaoConhecimento >= '{1}'" +
                         "   And Mov.dt_Recepcao is null" +
                         " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
+
+
+                #region Emails enviados por grupo de cliente
 
                 sSQL.Clear();
 
                 sSQL.Append("Select").Append(Environment.NewLine);
-                sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                sSQL.Append("Distinct d.ds_GrupoCliente as ds_Pessoa, d.id_GrupoCliente as id_Cliente, Max(a.ds_EmailDestino) as ds_EmailDestino, ").Append(Environment.NewLine);
+                sSQL.Append("Max(a.ds_AssuntoEmail) as ds_AssuntoEmail, Max(a.ds_CorpoEmail) as ds_CorpoEmail").Append(Environment.NewLine);
                 sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
                 sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
-                sSQL.Append("Where a.tp_RelatorioPrazoEntrega = 'S'");
+                sSQL.Append("Inner join tbdConfiguracaoCliente c (Nolock) on b.id_Pessoa = c.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdGrupoCliente d (Nolock) on c.id_GrupoCliente = d.id_GrupoCliente").Append(Environment.NewLine);
+                sSQL.Append("Where a.tp_RelatorioPrazoEntrega = 'S'").Append(Environment.NewLine);
+                sSQL.Append("Group by  d.ds_GrupoCliente, d.id_GrupoCliente");
 
                 if (bTrace)
                     Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
@@ -752,7 +842,7 @@ namespace Robo_EnvioEmail
                         if (bTrace)
                             Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
 
-                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "config.id_GrupoCliente = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
                         if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
                         {
@@ -761,7 +851,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "L", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_PrazoEntrega");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_PrazoEntrega");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -782,10 +872,74 @@ namespace Robo_EnvioEmail
                             this.Refresh();
                         }
                     }
+                }
 
-                    txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                #endregion
+
+                #region Emails enviados Clientes sem grupo
+
+                sSQL.Clear();
+
+                sSQL.Append("Select").Append(Environment.NewLine);
+                sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdConfiguracaoCliente c (Nolock) on b.id_Pessoa = c.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Where a.tp_RelatorioPrazoEntrega = 'S' And c.id_GrupoCliente is null");
+
+                if (bTrace)
+                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+
+                dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
+
+                if (dt == null || dt.Rows.Count == 0)
+                {
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Prazo Entrega] - Nenhum cliente cadastrado para envio de relatório." + Environment.NewLine;
                     this.Refresh();
                 }
+                else
+                {
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        if (bTrace)
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+
+                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "mov.id_ClienteFaturamento = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+
+                        if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Prazo Entrega] - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
+                            this.Refresh();
+                            continue;
+                        }
+
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_PrazoEntrega");
+
+                        sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                            dr["ds_EmailDestino"].ToString(),
+                            "",
+                            dr["ds_AssuntoEmail"].ToString(),
+                            dr["ds_CorpoEmail"].ToString(),
+                            sArquivoGerado
+                            );
+
+                        if (sStatusEnvio.ToUpper() == "OK")
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + dr["ds_EmailDestino"] + Environment.NewLine;
+                            this.Refresh();
+                        }
+                        else
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email: " + sStatusEnvio + Environment.NewLine;
+                            this.Refresh();
+                        }
+                    }
+                }
+
+                #endregion
+
+                txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                this.Refresh();
             }
             catch (Exception ex)
             {
@@ -829,12 +983,13 @@ namespace Robo_EnvioEmail
                 this.Refresh();
 
 
-                sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega) as Prazo_Entrega, movNF.cd_notaFiscal as NF," +
+                sQuery = "Select mov.dt_ImpressaoConhecimento as Emissao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega) as Previsao_Entrega, movNF.cd_notaFiscal as NF," +
                         " rTrim(Isnull(mov.nr_Conhecimento, '')) as CTe," +
                         " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                         " rTrim(fat.ds_Pessoa) as Faturado, rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, " +
                         " rTrim(estdest.cd_Estado) UF_Destinatario, " +
                         " rTrim(OcoCli.ds_OcorrenciaCliente) as Ultima_Ocorrencia, ocoNF.dt_PrazoFechamento as Data, ocoNF.hr_PrazoFechamento as Hora, " +
+                        " rTrim(ocoNF.ds_Ocorrencia) as Complemento, " +
                         " Case When mov.dt_Recepcao is not null Then " +
                         "   Case When Datediff(d, mov.dt_Recepcao, Isnull(Agend.dt_Agendamento, Mov.dt_PrazoEntrega)) >= 0 Then 'Dentro do Prazo' Else 'Fora do Prazo' End " +
                         " Else " +
@@ -850,22 +1005,33 @@ namespace Robo_EnvioEmail
                         " Inner join tbdOcorrenciaCliente OcoCli on OcoNF.id_Ocorrencia = OcoCli.id_Ocorrencia And Mov.id_ClienteFaturamento = OcoCli.id_Pessoa " +
                         " Left  join tbd_Site_MovimentoAgendamento Agend (Nolock) on MovNF.id_Movimento = Agend.id_Movimento And MovNF.cd_NotaFiscal = Agend.cd_NotaFiscal" +
                         " Inner join tbdPessoa fat (Nolock) on mov.id_ClienteFaturamento = fat.id_Pessoa" +
+                        " Left  join tbdConfiguracaoCliente config (Nolock) on fat.id_Pessoa = config.id_Pessoa" +
                         " Inner join tbdPessoa rem (Nolock) on mov.id_Remetente = rem.id_Pessoa" +
                         " Inner join tbdCidade cidrem (Nolock) on mov.id_CidadeOrigem = cidrem.id_Cidade" +
                         " Inner join tbdEstado estrem (Nolock) on cidrem.id_Estado = estrem.id_Estado" +
                         " Inner join tbdCidade ciddest (Nolock) on mov.id_Cidade = ciddest.id_Cidade" +
                         " Inner join tbdEstado estdest (Nolock) on ciddest.id_Estado = estdest.id_Estado" +
-                        " Where id_ClienteFaturamento = {0} And mov.dt_ImpressaoConhecimento >= '{1}'" +
-                        "   and Datediff(d, dt_ImpressaoConhecimento, Convert(datetime, (Convert(varchar, Getdate(), 102)))) <= 30 " +
+                        " Where {0} And mov.dt_ImpressaoConhecimento >= '{1}'" +
+                        "   And Datediff(d, dt_ImpressaoConhecimento, Convert(datetime, (Convert(varchar, Getdate(), 102)))) <= 30 " +
+                        "   And Mov.dt_Recepcao is not null" +
                         " Order by MovNF.id_Movimento, MovNF.cd_NotaFiscal";
+
+
+                #region Emails enviados por grupo de cliente
 
                 sSQL.Clear();
 
                 sSQL.Append("Select").Append(Environment.NewLine);
-                sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                sSQL.Append("Distinct d.ds_GrupoCliente as ds_Pessoa, d.id_GrupoCliente as id_Cliente, Max(a.ds_EmailDestino) as ds_EmailDestino, ").Append(Environment.NewLine);
+                sSQL.Append("Max(a.ds_AssuntoEmail) as ds_AssuntoEmail, Max(a.ds_CorpoEmail) as ds_CorpoEmail").Append(Environment.NewLine);
                 sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
                 sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
-                sSQL.Append("Where a.tp_RelatorioPerformance = 'S'");
+                sSQL.Append("Inner join tbdConfiguracaoCliente c (Nolock) on b.id_Pessoa = c.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdGrupoCliente d (Nolock) on c.id_GrupoCliente = d.id_GrupoCliente").Append(Environment.NewLine);
+                sSQL.Append("Where a.tp_RelatorioPerformance = 'S'").Append(Environment.NewLine);
+                sSQL.Append("Group by d.ds_GrupoCliente, d.id_GrupoCliente");
+                sSQL.Clear();
+
 
                 if (bTrace)
                     Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
@@ -884,7 +1050,7 @@ namespace Robo_EnvioEmail
                         if (bTrace)
                             Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
 
-                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "config.id_GrupoCliente = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
                         if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
                         {
@@ -893,7 +1059,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "P", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_Performance");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_Performance");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -914,10 +1080,74 @@ namespace Robo_EnvioEmail
                             this.Refresh();
                         }
                     }
+                }
 
-                    txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                #endregion
+
+                #region Emails enviados - Clientes sem grupo
+
+                sSQL.Clear();
+
+                sSQL.Append("Select").Append(Environment.NewLine);
+                sSQL.Append("Distinct a.id_Cliente, b.ds_Pessoa, a.ds_EmailDestino, a.ds_AssuntoEmail, a.ds_CorpoEmail").Append(Environment.NewLine);
+                sSQL.Append("From tbdExtraClienteEmail a (Nolock) ").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdPessoa b (Nolock) on a.id_Cliente = b.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Inner join tbdConfiguracaoCliente c (Nolock) on b.id_Pessoa = c.id_Pessoa").Append(Environment.NewLine);
+                sSQL.Append("Where a.tp_RelatorioPerformance = 'S' And c.id_GrupoCliente is null");
+
+                if (bTrace)
+                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+
+                dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
+
+                if (dt == null || dt.Rows.Count == 0)
+                {
+                    txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Performance] - Nenhum cliente cadastrado para envio de relatório." + Environment.NewLine;
                     this.Refresh();
                 }
+                else
+                {
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        if (bTrace)
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+
+                        dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "mov.id_ClienteFaturamento = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
+
+                        if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Performance] - Não há emissões hoje para o cliente." + dr["ds_Pessoa"] + Environment.NewLine;
+                            this.Refresh();
+                            continue;
+                        }
+
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_Performance");
+
+                        sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
+                            dr["ds_EmailDestino"].ToString(),
+                            "",
+                            dr["ds_AssuntoEmail"].ToString(),
+                            dr["ds_CorpoEmail"].ToString(),
+                            sArquivoGerado
+                            );
+
+                        if (sStatusEnvio.ToUpper() == "OK")
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Email enviado para: " + dr["ds_EmailDestino"] + Environment.NewLine;
+                            this.Refresh();
+                        }
+                        else
+                        {
+                            txtStatus.Text += DateTime.Now.ToString("f") + " - Ocorreu uma falha no envio do email: " + sStatusEnvio + Environment.NewLine;
+                            this.Refresh();
+                        }
+                    }
+                }
+
+                #endregion
+
+                txtStatus.Text += DateTime.Now.ToString("f") + " - Processo concluído." + Environment.NewLine;
+                this.Refresh();
             }
             catch (Exception ex)
             {
