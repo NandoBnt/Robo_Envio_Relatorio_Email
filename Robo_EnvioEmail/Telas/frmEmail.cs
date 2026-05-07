@@ -1,6 +1,7 @@
 ﻿using Robo_EnvioEmail.DataAcess;
 using Robo_EnvioEmail.Negocio;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.IO;
@@ -179,6 +180,8 @@ namespace Robo_EnvioEmail
         {
             try
             {
+                string sDiretorioAplicacao = AppDomain.CurrentDomain.BaseDirectory;
+
                 if (DateTime.Now >= dtProximaAtualizacao)
                 {
                     string sStatusEnvio = string.Empty;
@@ -190,6 +193,7 @@ namespace Robo_EnvioEmail
                     DataTable dtRelatorio = new DataTable();
                     string sSQLAtualizar = string.Empty;
                     string sQuery = string.Empty;
+
 
                     timer1.Enabled = false;
 
@@ -218,7 +222,7 @@ namespace Robo_EnvioEmail
                     bool bRet = false;
                     string sArquivoGerado = string.Empty;
                     string sPDFGerado = string.Empty;
-                    string listaXML = string.Empty;
+                    List<string> listaXML = new List<string>();
 
                     timer1.Enabled = false;
 
@@ -334,7 +338,7 @@ namespace Robo_EnvioEmail
                         "   And nr_PreAlertEmail = {1}";
 
                     if (bTrace)
-                        Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                        Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                     dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -353,9 +357,12 @@ namespace Robo_EnvioEmail
                         {
                             dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Agente"].ToString()));
 
-                            sArquivoGerado = ""; sPDFGerado = ""; listaXML = "";
+                            if(dtRelatorio == null || dtRelatorio.Rows.Count == 0)
+                                continue;
 
-                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+                            sArquivoGerado = ""; sPDFGerado = ""; listaXML.Clear();
+
+                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", sDiretorioAplicacao + "Relatorios\\", "PreAlert");
 
                             // Arquivo PDF do Relatório
                             sPDFGerado = objRelatorio.ExportarExcelParaPDF(sArquivoGerado, sArquivoGerado.Replace("xlsx", "pdf"));
@@ -368,9 +375,10 @@ namespace Robo_EnvioEmail
                             // Lista de XML dos CTes
                             listaXML = objRelatorio.RetornaArquivosXML(sDiretorioXML, dtRelatorio);
 
-                            if (listaXML != string.Empty)
+                            if (listaXML.Count > 0)
                             {
-                                sArquivoGerado += ";" + listaXML;
+                                var arquivoZipXML = ZipHelper.CriarZipArquivos(listaXML, sDiretorioAplicacao + "Relatorios\\");
+                                sArquivoGerado += ";" + arquivoZipXML;
                             }
 
                             sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
@@ -456,7 +464,7 @@ namespace Robo_EnvioEmail
                         "   And nr_PreAlertEmail = {1}";
 
                     if (bTrace)
-                        Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                        Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                     dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -474,16 +482,25 @@ namespace Robo_EnvioEmail
                         foreach (DataRow dr in dt.Rows)
                         {
                             if (bTrace)
-                                Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Agente"].ToString()), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                                Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Agente"].ToString()), sDiretorioAplicacao + "Log\\");
 
                             dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, dr["id_Agente"].ToString()));
 
-                            sArquivoGerado = ""; sPDFGerado = ""; listaXML = "";
+                            if (dtRelatorio == null || dtRelatorio.Rows.Count == 0)
+                                continue;
 
-                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "PreAlert");
+                            sArquivoGerado = ""; sPDFGerado = ""; listaXML.Clear();
+
+                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", sDiretorioAplicacao + "Relatorios\\", "PreAlert");
+
+                            if (bTrace)
+                                Log.gravaLog("Arquivo XLS gerado: " + sArquivoGerado, sDiretorioAplicacao + "Log\\");
 
                             // Arquivo PDF do Relatório
                             sPDFGerado = objRelatorio.ExportarExcelParaPDF(sArquivoGerado, sArquivoGerado.Replace("xlsx", "pdf"));
+
+                            if (bTrace)
+                                Log.gravaLog("Arquivo PDF gerado: " + sPDFGerado, sDiretorioAplicacao + "Log\\");
 
                             if (sPDFGerado != string.Empty)
                             {
@@ -493,10 +510,14 @@ namespace Robo_EnvioEmail
                             // Lista de XML dos CTes
                             listaXML = objRelatorio.RetornaArquivosXML(sDiretorioXML, dtRelatorio);
 
-                            if (listaXML != string.Empty)
+                            if (listaXML.Count > 0)
                             {
-                                sArquivoGerado += ";" + listaXML;
+                                var arquivoZipXML = ZipHelper.CriarZipArquivos(listaXML, sDiretorioAplicacao + "Relatorios\\");
+                                sArquivoGerado += ";" + arquivoZipXML;
                             }
+
+                            if (bTrace && listaXML.Count > 0)
+                                Log.gravaLog("Arquivos gerado com XML: " + sArquivoGerado, sDiretorioAplicacao + "Log\\");
 
                             sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                                 dr["cd_Email"].ToString(),
@@ -564,8 +585,6 @@ namespace Robo_EnvioEmail
         }
         private void GerarRelatorioFollowup()
         {
-
-
             try
             {
                 string sStatusEnvio = string.Empty;
@@ -577,6 +596,7 @@ namespace Robo_EnvioEmail
                 DataTable dtRelatorio = new DataTable();
                 string sSQLAtualizar = string.Empty;
                 string sQuery = string.Empty;
+                string sDiretorioAplicacao = AppDomain.CurrentDomain.BaseDirectory;
 
                 txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório FollowUp] - Verificando emails pendentes de envio." + Environment.NewLine;
                 this.Refresh();
@@ -623,7 +643,7 @@ namespace Robo_EnvioEmail
                 sSQL.Append("Group by d.ds_GrupoCliente, d.id_GrupoCliente");
 
                 if (bTrace)
-                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                    Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                 dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -637,7 +657,7 @@ namespace Robo_EnvioEmail
                     foreach (DataRow dr in dt.Rows)
                     {
                         if (bTrace)
-                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), sDiretorioAplicacao + "Log\\");
 
                         dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "config.id_GrupoCliente = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
@@ -648,7 +668,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "O", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_FollowUp");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "O", sDiretorioAplicacao + "Relatorios\\", "Relatorio_FollowUp");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -685,7 +705,7 @@ namespace Robo_EnvioEmail
                 sSQL.Append("Where a.tp_RelatorioFollowup = 'S' And c.id_GrupoCliente is null");
 
                 if (bTrace)
-                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                    Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                 dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -699,7 +719,7 @@ namespace Robo_EnvioEmail
                     foreach (DataRow dr in dt.Rows)
                     {
                         if (bTrace)
-                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), sDiretorioAplicacao + "Log\\");
 
                         dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "mov.id_ClienteFaturamento = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
@@ -710,7 +730,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "O", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_FollowUp");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE INFORMAÇÕES", "O", sDiretorioAplicacao + "Relatorios\\", "Relatorio_FollowUp");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -773,6 +793,7 @@ namespace Robo_EnvioEmail
                 DataTable dtRelatorio = new DataTable();
                 string sSQLAtualizar = string.Empty;
                 string sQuery = string.Empty;
+                string sDiretorioAplicacao = AppDomain.CurrentDomain.BaseDirectory;
 
                 txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Prazo Entrega] - Verificando emails pendentes de envio." + Environment.NewLine;
                 this.Refresh();
@@ -826,7 +847,7 @@ namespace Robo_EnvioEmail
                 sSQL.Append("Group by  d.ds_GrupoCliente, d.id_GrupoCliente");
 
                 if (bTrace)
-                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                    Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                 dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -840,7 +861,7 @@ namespace Robo_EnvioEmail
                     foreach (DataRow dr in dt.Rows)
                     {
                         if (bTrace)
-                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), sDiretorioAplicacao + "Log\\");
 
                         dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "config.id_GrupoCliente = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
@@ -851,7 +872,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_PrazoEntrega");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", sDiretorioAplicacao + "Relatorios\\", "Relatorio_PrazoEntrega");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -888,7 +909,7 @@ namespace Robo_EnvioEmail
                 sSQL.Append("Where a.tp_RelatorioPrazoEntrega = 'S' And c.id_GrupoCliente is null");
 
                 if (bTrace)
-                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                    Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                 dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -902,7 +923,7 @@ namespace Robo_EnvioEmail
                     foreach (DataRow dr in dt.Rows)
                     {
                         if (bTrace)
-                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), sDiretorioAplicacao + "Log\\");
 
                         dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "mov.id_ClienteFaturamento = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
@@ -913,7 +934,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_PrazoEntrega");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", sDiretorioAplicacao + "Relatorios\\", "Relatorio_PrazoEntrega");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -978,6 +999,7 @@ namespace Robo_EnvioEmail
                 DataTable dtRelatorio = new DataTable();
                 string sSQLAtualizar = string.Empty;
                 string sQuery = string.Empty;
+                string sDiretorioAplicacao = AppDomain.CurrentDomain.BaseDirectory;
 
                 txtStatus.Text += DateTime.Now.ToString("f") + " - [Relatório Performance] - Verificando emails pendentes de envio." + Environment.NewLine;
                 this.Refresh();
@@ -1034,7 +1056,7 @@ namespace Robo_EnvioEmail
 
 
                 if (bTrace)
-                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                    Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                 dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -1048,7 +1070,7 @@ namespace Robo_EnvioEmail
                     foreach (DataRow dr in dt.Rows)
                     {
                         if (bTrace)
-                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), sDiretorioAplicacao + "Log\\");
 
                         dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "config.id_GrupoCliente = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
@@ -1059,7 +1081,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_Performance");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", sDiretorioAplicacao + "Relatorios\\", "Relatorio_Performance");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),
@@ -1096,7 +1118,7 @@ namespace Robo_EnvioEmail
                 sSQL.Append("Where a.tp_RelatorioPerformance = 'S' And c.id_GrupoCliente is null");
 
                 if (bTrace)
-                    Log.gravaLog("Query: " + sSQL.ToString(), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                    Log.gravaLog("Query: " + sSQL.ToString(), sDiretorioAplicacao + "Log\\");
 
                 dt = objBase.RealizaPesquisaSQL(sSQL.ToString());
 
@@ -1110,7 +1132,7 @@ namespace Robo_EnvioEmail
                     foreach (DataRow dr in dt.Rows)
                     {
                         if (bTrace)
-                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), AppDomain.CurrentDomain.BaseDirectory + "Log\\");
+                            Log.gravaLog("Query: " + String.Format(sQuery, dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")), sDiretorioAplicacao + "Log\\");
 
                         dtRelatorio = objBase.RealizaPesquisaSQL(String.Format(sQuery, "mov.id_ClienteFaturamento = " + dr["id_Cliente"].ToString(), dtpDataCorte.Value.ToString("yyyy-MM-dd")));
 
@@ -1121,7 +1143,7 @@ namespace Robo_EnvioEmail
                             continue;
                         }
 
-                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", AppDomain.CurrentDomain.BaseDirectory + "Relatorios\\", "Relatorio_Performance");
+                        string sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "CRONOGRAMA DE ENTREGAS", "Q", sDiretorioAplicacao + "Relatorios\\", "Relatorio_Performance");
 
                         sStatusEnvio = objEnvioEmail.EnviarMensagemEmail(
                             dr["ds_EmailDestino"].ToString(),

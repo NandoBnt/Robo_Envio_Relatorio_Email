@@ -2,7 +2,9 @@
 using MailKit.Security;
 using MimeKit;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Robo_EnvioEmail
 {
@@ -33,6 +35,7 @@ namespace Robo_EnvioEmail
             MimeMessage message = new MimeMessage();
             InternetAddressList listaDestino = new InternetAddressList();
             InternetAddressList listaCC = new InternetAddressList();
+            List<string> listaAnexos = new List<string>();
 
             try
             {
@@ -73,7 +76,7 @@ namespace Robo_EnvioEmail
 
                 if (_anexos != null && _anexos != String.Empty)
                 {
-                    var listaAnexos = _anexos.Split(';');
+                    listaAnexos = _anexos.Split(';').ToList();
 
                     foreach (string sAnexo in listaAnexos)
                     {
@@ -116,6 +119,20 @@ namespace Robo_EnvioEmail
                     smtpClient.Send(message);
                     smtpClient.Disconnect(true);
                     smtpClient.Dispose();
+
+                    //Apaga os arquivos anexos do diretório, após o envio do email
+                    if (listaAnexos != null && listaAnexos.Count > 0) 
+                    {
+                        foreach (string sAnexo in listaAnexos)
+                        {
+                            FileInfo file = new FileInfo(sAnexo);
+
+                            if (file.Exists)
+                            {
+                                File.Delete(file.FullName);
+                            }
+                        }
+                    }
                 }
                 catch (SmtpCommandException ex)
                 {

@@ -82,6 +82,12 @@
     <Reference Include="System.Formats.Asn1, Version=9.0.0.10, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Formats.Asn1.9.0.10\lib\net462\System.Formats.Asn1.dll</HintPath>
     </Reference>
+    <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
     </Reference>
@@ -123,6 +129,7 @@
     <Compile Include="Negocio\ExcelPackage.cs" />
     <Compile Include="Negocio\Log.cs" />
     <Compile Include="Negocio\Relatorio.cs" />
+    <Compile Include="Negocio\ZipHelper.cs" />
     <Compile Include="Telas\frmEmail.cs">
       <SubType>Form</SubType>
     </Compile>

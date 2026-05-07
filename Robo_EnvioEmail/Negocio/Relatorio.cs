@@ -142,10 +142,10 @@ namespace Robo_EnvioEmail.Negocio
             return caminhoDestinoPDF;
         }
 
-        public string RetornaArquivosXML(string sCaminhoXML, System.Data.DataTable dtDados)
+        public List<string> RetornaArquivosXML(string sCaminhoXML, System.Data.DataTable dtDados)
         {
 
-            string listaArquivos = string.Empty;
+            List<string> listaArquivos = new List<string>();
             string sNomeArquivo;
             string sSubDiretorio;
             string sArquivo;
@@ -159,13 +159,8 @@ namespace Robo_EnvioEmail.Negocio
 
                 if (File.Exists(sArquivo))
                 {
-                    listaArquivos += sArquivo + ";";
+                    listaArquivos.Add(sArquivo);
                 }
-            }
-
-            if (listaArquivos != string.Empty)
-            {
-                listaArquivos = listaArquivos.Substring(0, listaArquivos.Length - 1);
             }
 
             return listaArquivos;
