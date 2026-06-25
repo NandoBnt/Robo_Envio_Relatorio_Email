@@ -434,10 +434,11 @@ namespace Robo_EnvioEmail
                             " Mov.dt_ImpressaoConhecimento as Emissao, " +
                             " rTrim(rem.ds_Pessoa) as Remetente, rTrim(cidrem.ds_Cidade) Cidade_Origem, rTrim(estrem.cd_Estado) UF_Origem," +
                             " rTrim(mov.ds_Cliente) as Destinatario, rTrim(ciddest.ds_Cidade) Cidade_Destinatario, rTrim(estdest.cd_Estado) UF_Destinatario, " +
-                            " mov.vl_NotaFiscal Valor_NF, mov.qt_Volume as Volume, mov.kg_Mercadoria as Peso" +
+                            " rTrim(Nat.ds_NaturezaMercadoria) as Natureza_Mercadoria, mov.vl_NotaFiscal Valor_NF, mov.qt_Volume as Volume, mov.kg_Mercadoria as Peso" +
                             " From tbdPreManifesto Pre (Nolock)" +
                             " Inner join tbdPreManifestoItem Item (Nolock) on Pre.id_PreManifesto = Item.id_PreManifesto" +
                             " Inner join tbdMovimento Mov (Nolock) on Item.id_Movimento = Mov.id_Movimento" +
+                            " Left join tbdNaturezaMercadoria Nat (Nolock) on Mov.id_NaturezaMercadoria = Nat.id_NaturezaMercadoria" +
                             " Inner join tbdPessoa Rem (Nolock) on Mov.id_Remetente = Rem.id_Pessoa" +
                             " Inner join tbdCidade CidRem (Nolock) on Rem.id_Cidade = CidRem.id_Cidade" +
                             " Inner join tbdEstado EstRem (Nolock) on CidRem.id_Estado = EstRem.id_Estado" +
@@ -491,7 +492,7 @@ namespace Robo_EnvioEmail
 
                             sArquivoGerado = ""; sPDFGerado = ""; listaXML.Clear();
 
-                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "N", sDiretorioAplicacao + "Relatorios\\", "PreAlert");
+                            sArquivoGerado = objRelatorio.GerarExcel(dtRelatorio, "PRE ALERT", "O", sDiretorioAplicacao + "Relatorios\\", "PreAlert");
 
                             if (bTrace)
                                 Log.gravaLog("Arquivo XLS gerado: " + sArquivoGerado, sDiretorioAplicacao + "Log\\");
